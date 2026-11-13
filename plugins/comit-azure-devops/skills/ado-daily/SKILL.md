@@ -48,6 +48,7 @@ Esta skill propõe um comentário por item citado na reunião e publica tudo com
 
 - Se alguém disse que um item terminou, começou ou mudou de data, liste como sugestão.
 - Só prepare a mudança com `ado_prepare_update` se a pessoa pedir. Cada mudança tem prévia e OK próprios.
+- Se alguém citou um bloqueio ("travou", "aguardando chamado", "caiu no QA"), liste o item como candidato a impedimento. Se o perfil da organização define um padrão de impedimento, sugira a skill `ado-impedimento` para esses itens. Cada impedimento tem prévia e OK próprios.
 
 ## Regras
 

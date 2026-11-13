@@ -30,6 +30,11 @@ Esta skill escreve no Azure DevOps. Ela não envia nada antes do OK explícito d
 - Não avalie regras de transição por conta própria. O `validateOnly` decide.
 - Não use a categoria Removed para trabalho feito. Não use Completed para trabalho não feito.
 
+## Impedimento
+
+- Para marcar ou desmarcar impedimento, use a skill `ado-impedimento`, não os campos soltos. Ela aplica o padrão do perfil da organização e grava o comentário obrigatório.
+- Se a pessoa disser que a atividade travou, sugira registrar o impedimento. O estado do item não muda por causa dele.
+
 ## Regras
 
 - Para `System.Tags`, a ferramenta lê as tags e concatena com `;`. Nunca substitua as tags existentes.
