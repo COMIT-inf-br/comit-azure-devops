@@ -407,6 +407,9 @@ class AttachTest(Base):
         (cred / "x").write_text("x")
         dirs = writes.denied_dirs(self.home, self.cfgdir, env={"APPDATA": str(appdata)})
         self.assertIn(cred, dirs)
+        local = self.tmp / "local"
+        dirs = writes.denied_dirs(self.home, self.cfgdir, env={"LOCALAPPDATA": str(local)})
+        self.assertIn(local / "Google" / "Chrome", dirs)
         orig = writes.denied_dirs
         writes.denied_dirs = lambda h, c=None, env=None: orig(h, c, {"APPDATA": str(appdata)})
         self.addCleanup(setattr, writes, "denied_dirs", orig)

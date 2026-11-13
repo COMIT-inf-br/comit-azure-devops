@@ -37,6 +37,7 @@ def run(org: str, project: str, out: list) -> None:
     cfg = config.set_org(config.default_config(), org, auth="az")
     auth = AuthManager(cfg)
     api = WorkItemsApi(ReadOnlyHttp(auth, config.configured_orgs(cfg)))
+    failed = False
     try:
         projects = api.list_projects(org)
         out.append(f"list_projects: ok, projetos={len(projects)}")
@@ -56,13 +57,12 @@ def run(org: str, project: str, out: list) -> None:
             out.append("get/comments/children: pulados (WIQL sem itens)")
     except (AdoApiError, AuthError, HttpError) as e:
         out.append(f"erro: {e.reason_code} http={getattr(e, 'http_status', None)}")
-        out.append("RESULTADO: FALHOU")
-        return
+        failed = True
     finally:
         tokens = [t.reveal() for t in auth.known_secrets()]
-        if any(t and t in "\n".join(out) for t in tokens):
-            out.append("ALERTA: token na saída")
-    out.append("RESULTADO: OK")
+        leaked = any(t and t in "\n".join(out) for t in tokens)
+        out.append(f"token_na_saida={'SIM' if leaked else 'não'}")
+    out.append("RESULTADO: FALHOU" if (failed or leaked) else "RESULTADO: OK")
 
 
 def main() -> int:

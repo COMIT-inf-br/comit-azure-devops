@@ -193,8 +193,9 @@ def denied_dirs(home: Path, config_dir: Optional[Path] = None,
     """Pastas de credencial. No Windows, `APPDATA`/`LOCALAPPDATA` podem estar fora do HOME."""
     env = os.environ if env is None else env
     out = [home.joinpath(*d) for d in DENIED_HOME_DIRS]
-    for var, subs in (("APPDATA", (("Microsoft", "Credentials"), ("Microsoft", "Protect"))),
-                      ("LOCALAPPDATA", (("Microsoft", "Credentials"),))):
+    for var, subs in (("APPDATA", (("Microsoft", "Credentials"), ("Microsoft", "Protect"), ("Mozilla",))),
+                      ("LOCALAPPDATA", (("Microsoft", "Credentials"), ("Google", "Chrome"), ("Microsoft", "Edge"),
+                                        ("BraveSoftware",)))):
         base = env.get(var)
         if base and os.path.isabs(base):
             out.extend(Path(base).joinpath(*s) for s in subs)
