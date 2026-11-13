@@ -45,6 +45,8 @@ READABLE_KEYS = {
     "delete": ("operation", "org", "target_id", "title"),
     "rollover": ("operation", "org", "iteration", "count"),
     "comments_batch": ("operation", "org", "count"),
+    "block": ("operation", "org", "target_id", "title"),
+    "unblock": ("operation", "org", "target_id", "title"),
 }
 
 

@@ -1,4 +1,4 @@
-"""Escritas em lote: mover para a sprint, criar sprint, excluir, virar a sprint e vários comentários.
+"""Escritas em lote: mover para a sprint, criar sprint, excluir, virar a sprint, vários comentários e impedimento.
 
 Cada prévia guarda uma lista de passos em `plan.steps`. O hash cobre a lista inteira.
 O estado de cada passo fica em `result.steps`, fora do plano, e não muda o hash:
@@ -10,7 +10,7 @@ O estado de cada passo fica em `result.steps`, fora do plano, e não muda o hash
 - `skipped`: não enviado porque um passo-portão (criar ou associar a sprint) falhou.
 
 O `ado_apply` numa prévia `partial` envia só os passos `pending`: um retry não duplica comentário nem
-movimento. Passo-portão que falha impede os passos seguintes. Exclusão vai para a lixeira
+movimento. O impedimento (`blocking.py`) usa o passo `set_fields` (PATCH de campos com `test /rev`). Passo-portão que falha impede os passos seguintes. Exclusão vai para a lixeira
 (DELETE sem `destroy`); `destroy=true` nunca é usado. Movimento leva `test /rev`.
 """
 from __future__ import annotations
@@ -23,13 +23,14 @@ from .http import JSON_PATCH
 from .planning import (ITER, Planning, iso_day, node_route, node_to_item_path, owner_of, parse_day,
                        path_segments, suggest_next, _day)
 from .preview import PreviewError
-from .workitems import API, CHILD_REL, NeedsDecision, check_guid, check_id, item_id_from_url
+from .workitems import API, CHILD_REL, NeedsDecision, check_guid, check_id, identity_view, item_id_from_url
 
 MAX_ITEMS = 200
 MAX_COMMENTS = 50
 MAX_DEPTH = 4
 ACTIONS = {
     "set_iteration": ("mover o item", "editar work items na área e na iteração"),
+    "set_fields": ("atualizar os campos do item", "editar work items na área"),
     "delete": ("excluir o item", "excluir work items"),
     "comment": ("comentar", "comentar em work items"),
     "create_node": ("criar a sprint", "criar iterações no projeto"),
@@ -53,13 +54,16 @@ def _status_for(code, default="failed"):
 
 
 class Batch:
-    OPERATIONS = ("move", "create_sprint", "delete", "rollover", "comments_batch")
+    OPERATIONS = ("move", "create_sprint", "delete", "rollover", "comments_batch", "block", "unblock")
+    PATCH_KINDS = ("set_iteration", "set_fields")
 
     def __init__(self, writes: Any):
+        from .blocking import Blocking  # import tardio: blocking usa os auxiliares deste módulo
         self.w = writes
         self.api = writes.api
         self.store = writes.store
         self.plan = Planning(writes.api)
+        self.blocking = Blocking(self)
 
     # --- auxiliares ----------------------------------------------------------------------------
 
@@ -397,7 +401,7 @@ class Batch:
     def _send_step(self, org: str, s: Mapping[str, Any], st: Mapping[str, Dict[str, Any]]) -> Dict[str, Any]:
         k = s["kind"]
         now = self.w.clock()
-        if k == "set_iteration":
+        if k in self.PATCH_KINDS:
             res = self.w._send(org, "PATCH", s["path"], {"api-version": API}, json_body=s["patch"],
                                content_type=JSON_PATCH)
         elif k == "delete":
@@ -439,7 +443,7 @@ class Batch:
             if k == "create_node" and resp.status == 409:
                 return {"state": "failed", "code": "SPRINT_EXISTS", "message": "Já existe sprint com esse nome.",
                         "diagnostic": diag}
-            if k == "set_iteration" and self.w._is_rev_conflict(resp):
+            if k in self.PATCH_KINDS and self.w._is_rev_conflict(resp):
                 return {"state": "failed", "code": "REVISION_CHANGED",
                         "message": "O item mudou depois da prévia. Prepare de novo.", "diagnostic": diag}
             return {"state": "failed", "code": resp.reason_code or "REFUSED", "diagnostic": diag}
@@ -496,6 +500,11 @@ class Batch:
             if str((raw.get("fields") or {}).get(ITER) or "").casefold() == s["to"].casefold():
                 return {"state": "done", "note": "reconcile"}
             return {"state": "pending"} if raw.get("rev") == s["rev"] else {"state": "ambiguous", "rev": raw.get("rev")}
+        if k == "set_fields":
+            raw = self.api.get_raw(org, s["id"], "none", list(s["fields"]))
+            if not self._fields_mismatch(org, s, raw):
+                return {"state": "done", "note": "reconcile"}
+            return {"state": "pending"} if raw.get("rev") == s["rev"] else {"state": "ambiguous", "rev": raw.get("rev")}
         if k == "delete":
             try:
                 raw = self.api.get_raw(org, s["id"], "none", ["System.Title"])
@@ -536,13 +545,29 @@ class Batch:
 
     # --- fechamento ------------------------------------------------------------------------------
 
+    def _fields_mismatch(self, org: str, s: Mapping[str, Any], raw: Mapping[str, Any]) -> List[Dict[str, Any]]:
+        """Campos de um passo `set_fields` que não têm o valor enviado (None = campo limpo)."""
+        from .writes import value_equal
+        f = raw.get("fields") or {}
+        bad = []
+        for ref, v in s["fields"].items():
+            got = f.get(ref)
+            ok = got in (None, "") if v is None else value_equal(ref, v, got, org, s["project_id"])
+            if not ok:
+                bad.append({"id": s["id"], "field": ref, "sent": v, "read": identity_view(got)})
+        return bad
+
     def _readback(self, org: str, steps: Sequence[Mapping[str, Any]], st: Mapping[str, Mapping[str, Any]]) -> List[Dict[str, Any]]:
         moved = {s["id"]: s["to"] for i, s in enumerate(steps)
                  if s["kind"] == "set_iteration" and (st.get(str(i)) or {}).get("state") == "done"}
         deleted = [s["id"] for i, s in enumerate(steps)
                    if s["kind"] == "delete" and (st.get(str(i)) or {}).get("state") == "done"]
+        patched = [s for i, s in enumerate(steps)
+                   if s["kind"] == "set_fields" and (st.get(str(i)) or {}).get("state") == "done"]
         bad: List[Dict[str, Any]] = []
         try:
+            for s in patched:
+                bad += self._fields_mismatch(org, s, self.api.get_raw(org, s["id"], "none", list(s["fields"])))
             if moved:
                 for r in self.api.get_many(org, list(moved), ["System.Id", ITER]):
                     got = r["fields"].get(ITER)

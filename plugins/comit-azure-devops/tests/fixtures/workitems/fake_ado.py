@@ -66,6 +66,27 @@ REQUIRED = {
 }
 
 
+BLOCKED = "Microsoft.VSTS.CMMI.Blocked"
+BLOCK_WHO = "Custom." + ME
+BLOCK_WHY = "Custom.MotivoImpedimento"
+BLOCK_DAY = "Custom.DataImpedimento"
+BLOCK_ETA = "Custom." + ANA
+
+
+def blocking():
+    """Padrão de impedimento sintético da Task (campos e política)."""
+    return {"fields": {"flag": {"field": BLOCKED, "value_on": "Yes", "value_off": "No"}, "responsible": BLOCK_WHO,
+                       "reason": BLOCK_WHY, "date": BLOCK_DAY, "forecast": BLOCK_ETA},
+            "policy": {"responsible_default": "parent_assigned_to", "date_default": "today", "forecast_days": 2,
+                       "kinds": {"infra": "de infraestrutura", "funcional": "funcional"},
+                       "comment_templates": {
+                           "default": "Impedimento {tipo}: {motivo}. Aguardando: {esperado} — responsável: "
+                                      "@{responsavel}. Previsão: {previsao}.",
+                           "funcional": "Impedimento funcional, aguardando resolver com @{responsavel}.",
+                           "unblock": "Impedimento resolvido: {resolucao}."},
+                       "clear_on_unblock": [], "suggest_on_block": True}}
+
+
 def profile():
     """Perfil sintético da org de teste, no formato do S3."""
     def t(name, req, extra=None):
@@ -82,11 +103,18 @@ def profile():
                 "required_by_rule": [{"fields": ["Microsoft.VSTS.Scheduling.OriginalEstimate"],
                                       "conditions": [{"type": "create"}], "when": "create", "source": "rule:x"}],
                 "defaults": {"Microsoft.VSTS.Common.Priority": 2},
-                "picklists": {"Custom.Equipe": ["DADOS", "QA"], "Microsoft.VSTS.Common.Priority": [1, 2, 3, 4]},
+                "picklists": {"Custom.Equipe": ["DADOS", "QA"], "Microsoft.VSTS.Common.Priority": [1, 2, 3, 4],
+                              BLOCKED: ["No", "Yes"]},
                 "fields": {"Microsoft.VSTS.Common.Priority": {"name": "Priority", "type": "integer"},
                            "Microsoft.VSTS.Scheduling.OriginalEstimate": {"name": "Original Estimate", "type": "double"},
                            "Microsoft.VSTS.Scheduling.RemainingWork": {"name": "Remaining Work", "type": "double"},
-                           "Custom.Equipe": {"name": "Equipe", "type": "string"}}}),
+                           "Custom.Equipe": {"name": "Equipe", "type": "string"},
+                           BLOCKED: {"name": "Blocked", "type": "string"},
+                           BLOCK_WHO: {"name": "Responsável pelo impedimento", "type": "string", "identity": True},
+                           BLOCK_WHY: {"name": "Motivo do impedimento", "type": "string"},
+                           BLOCK_DAY: {"name": "Data do impedimento", "type": "dateTime"},
+                           BLOCK_ETA: {"name": "Previsão de desimpedimento", "type": "dateTime"}},
+                "blocking": blocking()}),
             "User Story": t("User Story", ["System.AreaPath", "System.IterationPath", "System.Title"]),
             "Epic": t("Epic", ["System.AreaPath", "System.IterationPath", "System.Title"]),
             "Bug": t("Bug", ["System.AreaPath", "System.IterationPath", "System.Title"]),

@@ -29,7 +29,8 @@ EXPECTED = {
     "ado_type_schema", "ado_discover_org", "ado_profile_save", "ado_set_defaults",
     "ado_prepare_create", "ado_prepare_update", "ado_prepare_comment", "ado_prepare_attach", "ado_apply",
     "ado_reconcile", "ado_backlog", "ado_sprint_items", "ado_prepare_move_to_sprint", "ado_prepare_create_sprint",
-    "ado_prepare_sprint_rollover", "ado_prepare_delete", "ado_prepare_comments_batch",
+    "ado_prepare_sprint_rollover", "ado_prepare_delete", "ado_prepare_comments_batch", "ado_prepare_block",
+    "ado_prepare_unblock",
 }
 
 
@@ -115,7 +116,7 @@ class Base(unittest.TestCase):
 class RegistryTest(unittest.TestCase):
     def test_nomes_exatos(self):
         self.assertEqual(set(tools.TOOLS), EXPECTED)
-        self.assertEqual(len(tools.tool_list()), 29)
+        self.assertEqual(len(tools.tool_list()), 31)
 
     def test_esquemas(self):
         for t in tools.tool_list():

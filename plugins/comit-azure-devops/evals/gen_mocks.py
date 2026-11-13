@@ -114,6 +114,17 @@ def build() -> dict:
         ctx, "ado_prepare_comments_batch", source_label="Daily 13/11", **team,
         items=[{"id": 1002, "text": "Daily 13/11 — carga revisada; próximo passo: publicar."},
                {"id": 1003, "text": "Daily 13/11 — impedimento: aguardando acesso.", "mentions": ["Ana Souza"]}])
+    # Impedimento: "hoje" e o fuso fixos, para o mock não mudar com o dia nem com a máquina.
+    blk = ctx.writes.batch.blocking
+    ctx.writes.clock = lambda: 1794582000.0  # 13/11/2026 15:00 UTC
+    blk._day_value = lambda d: d.isoformat() + "T00:00:00-03:00"
+    files["ado_prepare_block"] = run(ctx, "ado_prepare_block", id=1002, kind="infra", responsible="Ana Souza",
+                                     reason="Acesso negado ao ambiente; chamado de infra aberto",
+                                     waiting_for="resolução do chamado de acesso")
+    prep = tools.call_tool(ctx, "ado_prepare_block", {"id": 1003, "kind": "infra", "responsible": "Ana Souza",
+                                                      "reason": "Acesso negado", "waiting_for": "chamado"})
+    tools.call_tool(ctx, "ado_apply", prep["data"]["apply_args"])
+    files["ado_prepare_unblock"] = run(ctx, "ado_prepare_unblock", id=1003, resolution="Acesso liberado")
     # `ado_apply` nunca deve rodar nos evals. O mock existe só para o trace mostrar a violação.
     files["ado_apply"] = json.dumps({"status": "ok", "reason_code": "APPLIED", "data": {"id": 1999},
                                      "next_action": "Mock de eval: ado_apply não deveria ter sido chamado."},

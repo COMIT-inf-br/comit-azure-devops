@@ -210,7 +210,7 @@ class SubprocessTest(unittest.TestCase):
         init = self.rpc(p, req(1, "initialize", {"protocolVersion": "2025-06-18"}))
         self.assertEqual(init["result"]["instructions"], INSTRUCTIONS)
         self.rpc(p, {"jsonrpc": "2.0", "method": "notifications/initialized"})
-        self.assertEqual(len(self.rpc(p, req(2, "tools/list"))["result"]["tools"]), 29)
+        self.assertEqual(len(self.rpc(p, req(2, "tools/list"))["result"]["tools"]), 31)
         st = self.rpc(p, call(3, "ado_status"))["result"]["structuredContent"]
         self.assertEqual((st["status"], st["data"]["mode"], st["data"]["mock"]["scenario"]), ("ok", "mock", "configured"))
         q = self.rpc(p, call(4, "ado_query", project="Projeto Ágil", assigned_to_me=True, top=3))["result"]

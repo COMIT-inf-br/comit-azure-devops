@@ -1141,6 +1141,119 @@
    }
   },
   {
+   "name": "ado_prepare_block",
+   "title": "Preparar impedimento",
+   "description": "Fase 1: marca o item como impedido pelo padrão de impedimento do perfil da org (campos e política). Prévia única: PATCH dos campos (test /rev, validateOnly) e comentário obrigatório com o motivo, o que se espera, o responsável e a previsão. Não muda o estado. Sem responsible, date e forecast, usa os padrões da política e mostra os valores para a pessoa confirmar ou trocar. Org sem padrão: needs_setup.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "reason": {
+      "type": "string",
+      "description": "Motivo do impedimento, curto."
+     },
+     "waiting_for": {
+      "type": "string",
+      "description": "O que se espera para desimpedir."
+     },
+     "kind": {
+      "type": "string",
+      "description": "Tipo do impedimento. Os tipos válidos vêm da política do perfil (ado_type_schema, blocking.policy.kinds)."
+     },
+     "responsible": {
+      "type": "string",
+      "description": "Nome ou e-mail de quem resolve. Omita para o padrão."
+     },
+     "date": {
+      "type": "string",
+      "description": "AAAA-MM-DD. Omita para o padrão (hoje)."
+     },
+     "forecast": {
+      "type": "string",
+      "description": "AAAA-MM-DD. Omita para o padrão da política."
+     },
+     "mention_responsible": {
+      "type": "boolean",
+      "description": "Padrão true: menciona o responsável."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     }
+    },
+    "required": [
+     "id",
+     "reason",
+     "kind"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar impedimento",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_unblock",
+   "title": "Preparar fim do impedimento",
+   "description": "Fase 1: desmarca o impedimento (flag no valor de desligado) e prepara o comentário de resolução. Mantém os campos do impedimento como histórico, salvo os que o perfil manda limpar. Não muda o estado.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "resolution": {
+      "type": "string",
+      "description": "Como o impedimento foi resolvido."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     }
+    },
+    "required": [
+     "id",
+     "resolution"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar fim do impedimento",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
    "name": "ado_apply",
    "title": "Aplicar prévia",
    "description": "Fase 2: envia ao Azure DevOps a prévia aprovada. Use os apply_args exatos do ado_prepare_*, só depois do OK explícito da pessoa para aquela prévia. Nunca chame sem OK. Em lote parcial, repetir envia só os pendentes.",
@@ -1163,7 +1276,9 @@
        "create_sprint",
        "delete",
        "rollover",
-       "comments_batch"
+       "comments_batch",
+       "block",
+       "unblock"
       ]
      },
      "org": {

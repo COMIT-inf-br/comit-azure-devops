@@ -551,7 +551,8 @@ def _type_view(tp: Mapping[str, Any], source: str) -> Dict[str, Any]:
     return {"source": source, "reference_name": tp.get("reference_name"), "states": states,
             "states_by_category": by_cat, "required_on_create": tp.get("required_on_create") or [],
             "required_by_rule": tp.get("required_by_rule") or [], "defaults": tp.get("defaults") or {},
-            "picklists": tp.get("picklists") or {}, "suggested_fields": tp.get("suggested_fields") or []}
+            "picklists": tp.get("picklists") or {}, "suggested_fields": tp.get("suggested_fields") or [],
+            "blocking": tp.get("blocking")}
 
 
 def _types_of(profile: Mapping[str, Any], project_id: str) -> Optional[Dict[str, Any]]:
@@ -792,12 +793,43 @@ def t_prepare_comments_batch(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
     return ctx.writes.batch.prepare_comments(org, a.get("project"), a.get("team"), a["items"], a.get("source_label"))
 
 
+@tool("ado_prepare_block", "Preparar impedimento",
+      "Fase 1: marca o item como impedido pelo padrão de impedimento do perfil da org (campos e política). "
+      "Prévia única: PATCH dos campos (test /rev, validateOnly) e comentário obrigatório com o motivo, o que se "
+      "espera, o responsável e a previsão. Não muda o estado. Sem responsible, date e forecast, usa os padrões da "
+      "política e mostra os valores para a pessoa confirmar ou trocar. Org sem padrão: needs_setup.",
+      S({"org": ORG, "id": ITEM_ID,
+         "reason": {"type": "string", "description": "Motivo do impedimento, curto."},
+         "waiting_for": {"type": "string", "description": "O que se espera para desimpedir."},
+         "kind": {"type": "string", "description": "Tipo do impedimento. Os tipos válidos vêm da política do perfil "
+                                                   "(ado_type_schema, blocking.policy.kinds)."},
+         "responsible": {"type": "string", "description": "Nome ou e-mail de quem resolve. Omita para o padrão."},
+         "date": {"type": "string", "description": "AAAA-MM-DD. Omita para o padrão (hoje)."},
+         "forecast": {"type": "string", "description": "AAAA-MM-DD. Omita para o padrão da política."},
+         "mention_responsible": {"type": "boolean", "description": "Padrão true: menciona o responsável."},
+         "project": PROJECT, "team": TEAM}, ("id", "reason", "kind")), read_only=False)
+def t_prepare_block(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    return ctx.writes.batch.blocking.prepare_block(
+        ctx.org(a), a["id"], a["reason"], a.get("waiting_for"), a["kind"], a.get("responsible"), a.get("date"),
+        a.get("forecast"), a.get("mention_responsible", True), a.get("project"), a.get("team"))
+
+
+@tool("ado_prepare_unblock", "Preparar fim do impedimento",
+      "Fase 1: desmarca o impedimento (flag no valor de desligado) e prepara o comentário de resolução. Mantém os "
+      "campos do impedimento como histórico, salvo os que o perfil manda limpar. Não muda o estado.",
+      S({"org": ORG, "id": ITEM_ID, "resolution": {"type": "string", "description": "Como o impedimento foi resolvido."},
+         "project": PROJECT, "team": TEAM}, ("id", "resolution")), read_only=False)
+def t_prepare_unblock(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    return ctx.writes.batch.blocking.prepare_unblock(ctx.org(a), a["id"], a["resolution"], a.get("project"),
+                                                     a.get("team"))
+
+
 @tool("ado_apply", "Aplicar prévia",
       "Fase 2: envia ao Azure DevOps a prévia aprovada. Use os apply_args exatos do ado_prepare_*, só depois do OK "
       "explícito da pessoa para aquela prévia. Nunca chame sem OK. Em lote parcial, repetir envia só os pendentes.",
       S({"preview_id": {"type": "string"}, "hash": {"type": "string"},
          "operation": {"enum": ["create", "update", "comment", "attach", "move", "create_sprint", "delete",
-                                "rollover", "comments_batch"]}, "org": {"type": "string"},
+                                "rollover", "comments_batch", "block", "unblock"]}, "org": {"type": "string"},
          "target_id": ITEM_ID, "type": {"type": "string"}, "title": {"type": "string"},
          "file_name": {"type": "string"}, "iteration": {"type": "string"}, "count": {"type": "integer"}},
         ("preview_id", "hash", "operation", "org")), read_only=False)
