@@ -1,6 +1,6 @@
-# PAT de contingência
+# PAT
 
-Use um PAT (token de acesso pessoal) só se a organização não aceitar o login do Azure CLI. O caminho padrão é o `az login`.
+Use um PAT (token de acesso pessoal) se você escolheu o PAT na configuração, ou se a organização não aceita o login do Azure CLI. O caminho recomendado é o `az login`. A comparação e as fontes estão em [`setup.md`](setup.md#escolha-do-login).
 
 Regras que valem sempre:
 
@@ -13,10 +13,11 @@ Regras que valem sempre:
 
 1. Abra `https://dev.azure.com/<org>/_usersSettings/tokens`.
 2. Crie um token novo.
-3. Em Scopes, escolha Custom defined.
-4. Marque só **Work Items: Read & write**. Esse escopo cobre criar, comentar e anexar.
-5. Marque **Project and Team: Read**. Sem ele, a lista de equipes e membros dá erro 401.
-6. Escolha a menor validade que a organização permitir.
+3. Em Organization, escolha só a organização do plugin.
+4. Em Scopes, escolha Custom defined.
+5. Marque só **Work Items: Read & write**. Esse escopo cobre criar, comentar e anexar.
+6. Marque **Project and Team: Read**. Sem ele, a lista de equipes e membros dá erro 401.
+7. Escolha a menor validade que a organização permitir.
 
 Não marque Full access, Code, Wiki nem escopos de administração. Read sozinho dá erro 401 ao criar, comentar ou anexar.
 

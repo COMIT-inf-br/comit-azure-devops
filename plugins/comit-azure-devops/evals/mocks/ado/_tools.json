@@ -28,7 +28,7 @@
   {
    "name": "ado_setup_org",
    "title": "Configurar organização",
-   "description": "Normaliza a organização (nome ou URL de item/projeto), descobre o tenant por GET anônimo e diz se há perfil. Só grava na config local com confirm=true. auth=pat e pat_ref registram a referência do PAT de contingência (nunca o valor).",
+   "description": "Normaliza a organização (nome ou URL de item/projeto), descobre o tenant por GET anônimo e diz se há perfil. Só grava na config local com confirm=true. auth é a escolha de login da pessoa: az (Azure CLI, sem PAT, recomendado) ou pat. pat_ref registra a referência do PAT (nunca o valor).",
    "inputSchema": {
     "type": "object",
     "properties": {

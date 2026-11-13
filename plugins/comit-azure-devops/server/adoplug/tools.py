@@ -361,8 +361,8 @@ PAT_REF = S({"nordpass_title": {"type": ["string", "null"]}, "nordpass_folder": 
 
 @tool("ado_setup_org", "Configurar organização",
       "Normaliza a organização (nome ou URL de item/projeto), descobre o tenant por GET anônimo e diz se há perfil. "
-      "Só grava na config local com confirm=true. auth=pat e pat_ref registram a referência do PAT de contingência "
-      "(nunca o valor).",
+      "Só grava na config local com confirm=true. auth é a escolha de login da pessoa: az (Azure CLI, sem PAT, "
+      "recomendado) ou pat. pat_ref registra a referência do PAT (nunca o valor).",
       S({"org": {"type": "string", "description": "Nome da organização ou URL dev.azure.com/<org>/..."},
          "auth": {"enum": ["az", "pat"]}, "pat_ref": PAT_REF, "confirm": CONFIRM}, ("org",)), read_only=False)
 def t_setup_org(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:

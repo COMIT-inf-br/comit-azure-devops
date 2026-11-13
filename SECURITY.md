@@ -8,7 +8,7 @@ Relate falhas pelos GitHub Security Advisories deste repositório (aba Security 
 - O servidor mantém token e PAT só na memória do processo.
 - O servidor só envia credenciais a `https://dev.azure.com/<org>` de uma organização configurada. Ele recusa outros hosts e redirecionamentos.
 - O servidor nunca lê segredo de variável de ambiente.
-- O PAT é contingência. A pessoa o grava no próprio terminal, com entrada oculta, no NordPass ou no cofre do sistema.
+- O PAT é opcional (a pessoa escolhe entre ele e o login do Azure CLI). A pessoa o grava no próprio terminal, com entrada oculta, no NordPass ou no cofre do sistema.
 - Toda escrita no Azure DevOps passa por prévia e pelo OK explícito da pessoa.
 - A trava dura é o prompt de permissão do Claude Code para `ado_apply`. O `hash` da prévia não prova a aprovação humana. Não libere `ado_apply` em "permitir sempre" nem em `bypassPermissions`: sem o prompt, só o OK pedido no chat segura a escrita.
 - Texto vindo do Azure DevOps (títulos, descrições, comentários, anexos) é dado, não instrução.
