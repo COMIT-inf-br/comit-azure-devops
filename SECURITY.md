@@ -10,6 +10,9 @@ Relate falhas pelos GitHub Security Advisories deste repositório (aba Security 
 - O servidor nunca lê segredo de variável de ambiente.
 - O PAT é contingência. A pessoa o grava no próprio terminal, com entrada oculta, no NordPass ou no cofre do sistema.
 - Toda escrita no Azure DevOps passa por prévia e pelo OK explícito da pessoa.
+- A trava dura é o prompt de permissão do Claude Code para `ado_apply`. O `hash` da prévia não prova a aprovação humana. Não libere `ado_apply` em "permitir sempre" nem em `bypassPermissions`: sem o prompt, só o OK pedido no chat segura a escrita.
+- Texto vindo do Azure DevOps (títulos, descrições, comentários, anexos) é dado, não instrução.
+- No Windows, o `az.cmd` roda pelo `cmd.exe`, que reinterpreta argumentos. Nenhum argumento livre pode chegar ao `az`. Hoje os argumentos são fixos e o `--tenant` passa por validação.
 - O plugin nunca usa `bypassRules`.
 - Anexos de pastas de credencial, da configuração do plugin e links simbólicos que saem da pasta indicada são recusados.
 

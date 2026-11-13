@@ -121,4 +121,8 @@ As ferramentas de leitura podem ir para `permissions.allow` do seu `settings.jso
 - `ado_type_schema`
 - `ado_discover_org`
 
-Não ponha `ado_apply` em `allow`. O prompt de permissão do Claude Code é a segunda trava depois do seu OK no chat. As ferramentas `ado_prepare_*` não enviam nada e podem ficar no prompt padrão.
+Não ponha `ado_apply` em `allow`. Não use "permitir sempre" nem o modo `bypassPermissions` para essa ferramenta.
+
+O prompt de permissão de `ado_apply` é a trava dura contra escrita indevida. O `preview_id` e o `hash` da prévia não provam o seu OK: o modelo recebe os dois no `ado_prepare_*` e os repassa no `ado_apply`. Sem o prompt de permissão, só o OK pedido no chat segura a escrita.
+
+As ferramentas `ado_prepare_*` não gravam nada no Azure DevOps. `ado_prepare_create` e `ado_prepare_update` enviam a validação ao servidor com `validateOnly`, que não grava. Elas podem ficar no prompt padrão.

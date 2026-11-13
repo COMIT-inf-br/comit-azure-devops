@@ -2,6 +2,10 @@
 
 O `az` só entrega o token; o REST é do `http`. O binário é chamado pelo
 caminho absoluto, sem shell (I4). O filho não recebe AZURE_DEVOPS_EXT_PAT (I3).
+
+Invariante: no Windows, `az.cmd` roda pelo `cmd.exe`, que reinterpreta os argumentos mesmo com
+`shell=False`. Nenhum argumento livre pode chegar ao `az`: só valores fixos e o `--tenant`
+validado por `TENANT_RE`.
 """
 from __future__ import annotations
 

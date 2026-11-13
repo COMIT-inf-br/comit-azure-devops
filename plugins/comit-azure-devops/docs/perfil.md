@@ -39,7 +39,7 @@ O `ado_status` avisa `PROFILE_ABSENT` quando a organização não tem perfil. Ne
 
 ## A validação final
 
-O perfil pode ficar incompleto. Regras condicionais por valor de campo nem sempre aparecem na leitura. Por isso, o `ado_prepare_create` envia a criação com `validateOnly`. O Azure DevOps decide, sem gravar nada. Se ele citar um campo que o perfil não conhece, o plugin atualiza a proposta e pede confirmação.
+O perfil pode ficar incompleto. Regras condicionais por valor de campo nem sempre aparecem na leitura. Por isso, o `ado_prepare_create` envia a criação com `validateOnly`. O Azure DevOps decide, sem gravar nada. Se ele recusar, o plugin devolve `VALIDATION_FAILED` com o diagnóstico do Azure DevOps, que lista os erros. O assistente mostra a lista e pede a sua decisão. O plugin não atualiza o perfil sozinho: rode a descoberta de novo para atualizá-lo.
 
 ## Organização sem work items
 

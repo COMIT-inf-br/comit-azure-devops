@@ -62,3 +62,10 @@ Acrescente `--org <org>` para conferir uma organização. A saída mostra cada v
 - Claude Code: execução completa.
 - Cowork em sessão local: execução completa, com melhor esforço.
 - Cowork em nuvem: o servidor local não roda. O plugin monta só o rascunho do payload e avisa.
+
+## As ferramentas `ado_*` não aparecem
+
+Duas causas diferentes dão o mesmo sintoma.
+
+- No Claude Code e no Claude Desktop, o servidor do plugin não subiu. O app gráfico pode não enxergar o `uv` no PATH. Rode `uv --version` num terminal. Confira que `uv` e `az` estão no PATH. Reinicie o app ou a sessão.
+- No Cowork em nuvem, o plugin só monta rascunhos. Para executar, use o Claude Code ou uma sessão local.
