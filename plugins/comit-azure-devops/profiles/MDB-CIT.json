@@ -1,0 +1,835 @@
+{
+  "schema_version": 1,
+  "org": "MDB-CIT",
+  "host": "https://dev.azure.com/MDB-CIT",
+  "auth": {
+    "preferred": "az",
+    "tenant": "discover"
+  },
+  "usage": {
+    "work_items": true
+  },
+  "measured_at": "2026-11-13",
+  "source": "embedded",
+  "projects_policy": "discover_others",
+  "projects": [
+    {
+      "id": "75fa7353-1190-4222-b9d9-55bec38d7624",
+      "name": "Calculadora Tributária",
+      "process": "6d10a09c-dab2-4afe-b4ee-cef905da8ad1"
+    },
+    {
+      "id": "9ed0e52d-3186-4833-82aa-457b78cd2dbd",
+      "name": "MDB058",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "6f77297b-c868-40a4-b210-cfdaf957d83f",
+      "name": "MDB_ACS",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "d1c9cacc-2248-41d4-b968-8b76339409e3",
+      "name": "MDB_AGENTES",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "206a7cbf-c06a-4fdb-8bbf-f77cd4fc622b",
+      "name": "MDB_ARS",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "d340c3a1-8b04-43f4-92f0-6d114b8365d2",
+      "name": "MDB_AUT",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "d52ec1e4-48d8-4768-960e-8c82e85c855f",
+      "name": "MDB_CBT",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "9ba1b3e9-4934-48bc-9ffb-622eb9425443",
+      "name": "MDB_CCOPL",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "6700b21d-8126-402e-837f-010bda6dcf20",
+      "name": "MDB_CIT",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "af3b856c-d027-4419-a117-cfe5da737872",
+      "name": "MDB_CLN",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "ae5631d7-0ec9-4af1-b92b-ace1c8dbbe41",
+      "name": "MDB_ETL",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "23944c55-ff58-4707-aa23-63cd160f2d12",
+      "name": "MDB_FSW",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "bfa6317b-f90e-4095-910c-728d558cb1c0",
+      "name": "MDB_LOG2",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "20f693a4-f4e9-4b25-a889-61cfd38a6f09",
+      "name": "MDB_LPP",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "f1aab2a0-9e54-451f-a6ac-4ce7e7fa75fa",
+      "name": "MDB_MNT",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "963ea219-7266-4af7-80df-b0116743aa5b",
+      "name": "MDB_MULESOFT",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "3b6d330f-2e65-4fe5-81b7-6c805c0f964b",
+      "name": "MDB_PICC",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "8ba793ce-b0cb-471a-bb32-3d80146d841b",
+      "name": "MDB_PLR",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "5831af80-e29f-45ba-b3b5-a8fd785208a5",
+      "name": "MDB_SAP",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "a0e8b720-0154-4b67-9669-6c13c48f34fe",
+      "name": "MDB_SGT",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "d0258397-0c9a-4c29-87e8-a494ff02bb30",
+      "name": "MDB_SISAS",
+      "process": "6d10a09c-dab2-4afe-b4ee-cef905da8ad1"
+    },
+    {
+      "id": "45908fa1-634c-404d-bbbb-79c908cc23b6",
+      "name": "MDB_SRM",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "b40c2237-cf84-49ed-9b3c-e8f60e55397a",
+      "name": "MDB_TELECOM",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "cc88bf84-8e73-4478-85de-e1c367af3850",
+      "name": "Projeto Data Science",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "09bb4c54-021f-49f2-8e99-b8aeb828ad58",
+      "name": "Projeto de Rollout em Jasmine e BBP em Las Acacias",
+      "process": "6d10a09c-dab2-4afe-b4ee-cef905da8ad1"
+    },
+    {
+      "id": "59e004d5-aeae-4cad-b564-e07282cd9d40",
+      "name": "Squad Data Lake Excelência Comercial",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "1eccc30d-41a4-4804-9caf-2adacf2df11d",
+      "name": "Squad Data Lake Industria",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    },
+    {
+      "id": "ba5f00d1-a80c-4302-9bb9-654b21bde530",
+      "name": "Squad FSW",
+      "process": "7f31702e-fdd4-4795-bbf1-5957e007e531"
+    }
+  ],
+  "processes": {
+    "6d10a09c-dab2-4afe-b4ee-cef905da8ad1": {
+      "name": "MDB_DEMANDAS_TI_PRJ",
+      "parent": "CMMI",
+      "work_item_types": "discover"
+    },
+    "7f31702e-fdd4-4795-bbf1-5957e007e531": {
+      "name": "MDB_DEMANDAS_TI",
+      "parent": "Agile",
+      "work_item_types": {
+        "Bug": {
+          "reference_name": "AgilePrimeMDias.Bug",
+          "category": "Microsoft.BugCategory",
+          "states": [
+            {
+              "name": "Aberto",
+              "category": "Proposed"
+            },
+            {
+              "name": "Em Andamento",
+              "category": "InProgress"
+            },
+            {
+              "name": "Re-Teste",
+              "category": "InProgress"
+            },
+            {
+              "name": "Resolvido",
+              "category": "Resolved"
+            },
+            {
+              "name": "Concluído",
+              "category": "Completed"
+            }
+          ],
+          "required_on_create": [
+            "Microsoft.VSTS.Common.ValueArea",
+            "System.AreaPath",
+            "System.IterationPath",
+            "System.Title"
+          ],
+          "required_by_rule": [],
+          "defaults": {
+            "Microsoft.VSTS.CMMI.Blocked": "No",
+            "Microsoft.VSTS.Common.Priority": 2,
+            "Microsoft.VSTS.Common.Severity": "3 - Medium",
+            "Microsoft.VSTS.Common.ValueArea": "Business"
+          },
+          "picklists": {
+            "Microsoft.VSTS.CMMI.Blocked": [
+              "No",
+              "Yes"
+            ],
+            "Microsoft.VSTS.Common.Priority": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "Microsoft.VSTS.Common.Severity": [
+              "1 - Critical",
+              "2 - High",
+              "3 - Medium",
+              "4 - Low"
+            ],
+            "Microsoft.VSTS.Common.ValueArea": [
+              "Architectural",
+              "Business"
+            ]
+          },
+          "fields": {
+            "Microsoft.VSTS.CMMI.Blocked": {
+              "name": "Blocked",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.Priority": {
+              "name": "Priority",
+              "type": "integer"
+            },
+            "Microsoft.VSTS.Common.Severity": {
+              "name": "Severity",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.ValueArea": {
+              "name": "Value Area",
+              "type": "string"
+            },
+            "System.AreaPath": {
+              "name": "Area Path",
+              "type": "treePath"
+            },
+            "System.IterationPath": {
+              "name": "Iteration Path",
+              "type": "treePath"
+            },
+            "System.Title": {
+              "name": "Title",
+              "type": "string"
+            }
+          }
+        },
+        "Epic": {
+          "reference_name": "AgilePrimeMDias.Epic",
+          "category": "Microsoft.EpicCategory",
+          "states": [
+            {
+              "name": "Aberto",
+              "category": "Proposed"
+            },
+            {
+              "name": "Em Andamento",
+              "category": "InProgress"
+            },
+            {
+              "name": "Suspenso",
+              "category": "InProgress"
+            },
+            {
+              "name": "Concluído",
+              "category": "Completed"
+            },
+            {
+              "name": "Removido",
+              "category": "Removed"
+            }
+          ],
+          "required_on_create": [
+            "Custom.DiretoriaSolicitante",
+            "Custom.FrentedeAtendimento",
+            "Custom.NumerodaDemandaSharepoint",
+            "Microsoft.VSTS.Common.Priority",
+            "Microsoft.VSTS.Common.ValueArea",
+            "System.AreaPath",
+            "System.IterationPath",
+            "System.Title"
+          ],
+          "required_by_rule": [],
+          "defaults": {
+            "Microsoft.VSTS.CMMI.Blocked": "No",
+            "Microsoft.VSTS.Common.Priority": 2,
+            "Microsoft.VSTS.Common.Risk": "3 - Low",
+            "Microsoft.VSTS.Common.ValueArea": "Business"
+          },
+          "picklists": {
+            "Custom.DiretoriaSolicitante": [
+              "ADMINISTRATIVO",
+              "COMERCIAL",
+              "COMPLIANCE, AUDITORIA E RISCOS",
+              "CONTABILIDADE",
+              "CONTROLADORIA",
+              "DGGS",
+              "FINANCEIRO",
+              "FISCAL",
+              "INDÚSTRIA",
+              "JURIDICO",
+              "LOGÍSTICA",
+              "MARKETING",
+              "MOINHO",
+              "P&D",
+              "RM",
+              "SUPRIMENTOS",
+              "TI - TECNOLOGIA DA INFORMACAO",
+              "TRADE MARKETING"
+            ],
+            "Custom.FrentedeAtendimento": [
+              "CIENCIA DE DADOS",
+              "COMERCIAL",
+              "CONTROLADORIA",
+              "CYBER SEGURANCA",
+              "ECV",
+              "FABRICA DE SOFTWARE",
+              "FORNECEDOR",
+              "HIPERAUTOMACAO",
+              "INDUSTRIA",
+              "LOGISTICA",
+              "MKT & RM",
+              "PESSOAS",
+              "PROCESSOS & GMUD",
+              "REDES",
+              "SUPRIMENTO & FINANCEIRO",
+              "TRIBUTARIO"
+            ],
+            "Microsoft.VSTS.CMMI.Blocked": [
+              "No",
+              "Yes"
+            ],
+            "Microsoft.VSTS.Common.Priority": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "Microsoft.VSTS.Common.Risk": [
+              "1 - High",
+              "2 - Medium",
+              "3 - Low"
+            ],
+            "Microsoft.VSTS.Common.ValueArea": [
+              "Architectural",
+              "Business"
+            ]
+          },
+          "fields": {
+            "Custom.DiretoriaSolicitante": {
+              "name": "Diretoria Solicitante",
+              "type": "string"
+            },
+            "Custom.FrentedeAtendimento": {
+              "name": "Frente de Atendimento",
+              "type": "string"
+            },
+            "Custom.NumerodaDemandaSharepoint": {
+              "name": "Numero da Demanda Sharepoint",
+              "type": "string"
+            },
+            "Microsoft.VSTS.CMMI.Blocked": {
+              "name": "Blocked",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.Priority": {
+              "name": "Priority",
+              "type": "integer"
+            },
+            "Microsoft.VSTS.Common.Risk": {
+              "name": "Risk",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.ValueArea": {
+              "name": "Value Area",
+              "type": "string"
+            },
+            "System.AreaPath": {
+              "name": "Area Path",
+              "type": "treePath"
+            },
+            "System.IterationPath": {
+              "name": "Iteration Path",
+              "type": "treePath"
+            },
+            "System.Title": {
+              "name": "Title",
+              "type": "string"
+            }
+          }
+        },
+        "Feature": {
+          "reference_name": "AgilePrimeMDias.Feature",
+          "category": "Microsoft.FeatureCategory",
+          "states": [
+            {
+              "name": "Aberto",
+              "category": "Proposed"
+            },
+            {
+              "name": "Em Andamento",
+              "category": "InProgress"
+            },
+            {
+              "name": "Concluído",
+              "category": "Completed"
+            },
+            {
+              "name": "Removido",
+              "category": "Removed"
+            }
+          ],
+          "required_on_create": [
+            "Microsoft.VSTS.Common.ValueArea",
+            "System.AreaPath",
+            "System.IterationPath",
+            "System.Title"
+          ],
+          "required_by_rule": [],
+          "defaults": {
+            "Microsoft.VSTS.CMMI.Blocked": "No",
+            "Microsoft.VSTS.Common.Priority": 2,
+            "Microsoft.VSTS.Common.Risk": "3 - Low",
+            "Microsoft.VSTS.Common.ValueArea": "Business"
+          },
+          "picklists": {
+            "Microsoft.VSTS.CMMI.Blocked": [
+              "No",
+              "Yes"
+            ],
+            "Microsoft.VSTS.Common.Priority": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "Microsoft.VSTS.Common.Risk": [
+              "1 - High",
+              "2 - Medium",
+              "3 - Low"
+            ],
+            "Microsoft.VSTS.Common.ValueArea": [
+              "Architectural",
+              "Business"
+            ]
+          },
+          "fields": {
+            "Microsoft.VSTS.CMMI.Blocked": {
+              "name": "Blocked",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.Priority": {
+              "name": "Priority",
+              "type": "integer"
+            },
+            "Microsoft.VSTS.Common.Risk": {
+              "name": "Risk",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.ValueArea": {
+              "name": "Value Area",
+              "type": "string"
+            },
+            "System.AreaPath": {
+              "name": "Area Path",
+              "type": "treePath"
+            },
+            "System.IterationPath": {
+              "name": "Iteration Path",
+              "type": "treePath"
+            },
+            "System.Title": {
+              "name": "Title",
+              "type": "string"
+            }
+          }
+        },
+        "Task": {
+          "reference_name": "AgilePrimeMDias.Task",
+          "category": "Microsoft.TaskCategory",
+          "states": [
+            {
+              "name": "Aberto",
+              "category": "Proposed"
+            },
+            {
+              "name": "Em Andamento",
+              "category": "InProgress"
+            },
+            {
+              "name": "Concluído",
+              "category": "Completed"
+            },
+            {
+              "name": "Removido",
+              "category": "Removed"
+            }
+          ],
+          "required_on_create": [
+            "Custom.Equipe",
+            "Microsoft.VSTS.Common.Activity",
+            "Microsoft.VSTS.Scheduling.StartDate",
+            "Microsoft.VSTS.Scheduling.TargetDate",
+            "System.AreaPath",
+            "System.IterationPath",
+            "System.Title"
+          ],
+          "required_by_rule": [
+            {
+              "fields": [
+                "Custom.82b61e94-5051-400e-a4a5-f6ad011e399a",
+                "Custom.Datadoimpedimento",
+                "Custom.Justificativadoimpedimento",
+                "Custom.c6d6c81c-cf87-4a77-8440-2bad54017a8b"
+              ],
+              "conditions": [
+                {
+                  "type": "when",
+                  "field": "Microsoft.VSTS.CMMI.Blocked",
+                  "value": "Yes"
+                }
+              ],
+              "when": "Microsoft.VSTS.CMMI.Blocked=Yes",
+              "source": "rule:Campos de impedimento obrigatórios"
+            },
+            {
+              "fields": [
+                "Microsoft.VSTS.Scheduling.OriginalEstimate"
+              ],
+              "conditions": [
+                {
+                  "type": "create"
+                }
+              ],
+              "when": "create",
+              "source": "rule:Campo Esforço Obrigatório"
+            }
+          ],
+          "defaults": {
+            "Custom.Tecnologia": "_Não Aplicável",
+            "Microsoft.VSTS.CMMI.Blocked": "No",
+            "Microsoft.VSTS.Common.Priority": 2
+          },
+          "picklists": {
+            "Custom.Equipe": [
+              "ACESSOS - TI",
+              "AREA DE NEGOCIO",
+              "ATG",
+              "CIENCIA DE DADOS",
+              "COMERCIAL - TI",
+              "CONTROLADORIA",
+              "DESKTOP DIGITAL",
+              "ECV",
+              "FORNECEDOR",
+              "FSW",
+              "FSW-QA",
+              "GOVERNANCA DE TI",
+              "INDUSTRIA",
+              "INDUSTRIA - TI",
+              "LOGISTICA - TI",
+              "MKT E PRICING",
+              "PeD",
+              "PESSOAS - TI",
+              "PROCESSOS",
+              "RPA",
+              "SEGURANCA INFORMACAO",
+              "SERVICOS DE TI",
+              "SUPORTE AO USUARIO",
+              "SUPRIMENTO E FINANCEIRO",
+              "TIG"
+            ],
+            "Custom.Tecnologia": [
+              "_Não Aplicável",
+              "ABAP",
+              "API",
+              "AWS",
+              "BODS",
+              "CPI",
+              "JAVA",
+              "MULESOFT",
+              "ODI",
+              "PHP",
+              "PL/SQL",
+              "SAP-PP",
+              "SAP-SD",
+              "SOA",
+              "WEBLOGIC"
+            ],
+            "Microsoft.VSTS.CMMI.Blocked": [
+              "No",
+              "Yes"
+            ],
+            "Microsoft.VSTS.Common.Activity": [
+              "1. Valoração",
+              "2. Discovery",
+              "3. Documentação",
+              "4. Desenvolvimento",
+              "5. Testes",
+              "6. POC",
+              "7. Gestão",
+              "8. Execução"
+            ],
+            "Microsoft.VSTS.Common.Priority": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "fields": {
+            "Custom.82b61e94-5051-400e-a4a5-f6ad011e399a": {
+              "name": "Responsável pelo impedimento",
+              "type": "string",
+              "identity": true
+            },
+            "Custom.Datadoimpedimento": {
+              "name": "Data do impedimento",
+              "type": "dateTime"
+            },
+            "Custom.Equipe": {
+              "name": "Equipe",
+              "type": "string"
+            },
+            "Custom.Justificativadoimpedimento": {
+              "name": "Justificativa do impedimento",
+              "type": "string"
+            },
+            "Custom.Tecnologia": {
+              "name": "Tecnologia",
+              "type": "string"
+            },
+            "Custom.c6d6c81c-cf87-4a77-8440-2bad54017a8b": {
+              "name": "Previsão de desimpedimento",
+              "type": "dateTime"
+            },
+            "Microsoft.VSTS.CMMI.Blocked": {
+              "name": "Blocked",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.Activity": {
+              "name": "Activity",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.Priority": {
+              "name": "Priority",
+              "type": "integer"
+            },
+            "Microsoft.VSTS.Scheduling.OriginalEstimate": {
+              "name": "Original Estimate",
+              "type": "double"
+            },
+            "Microsoft.VSTS.Scheduling.RemainingWork": {
+              "name": "Remaining Work",
+              "type": "double"
+            },
+            "Microsoft.VSTS.Scheduling.StartDate": {
+              "name": "Start Date",
+              "type": "dateTime"
+            },
+            "Microsoft.VSTS.Scheduling.TargetDate": {
+              "name": "Target Date",
+              "type": "dateTime"
+            },
+            "System.AreaPath": {
+              "name": "Area Path",
+              "type": "treePath"
+            },
+            "System.IterationPath": {
+              "name": "Iteration Path",
+              "type": "treePath"
+            },
+            "System.Title": {
+              "name": "Title",
+              "type": "string"
+            }
+          },
+          "suggested_fields": [
+            "Microsoft.VSTS.Scheduling.RemainingWork",
+            "Custom.Tecnologia"
+          ]
+        },
+        "User Story": {
+          "reference_name": "AgilePrimeMDias.UserStory",
+          "category": "Microsoft.RequirementCategory",
+          "states": [
+            {
+              "name": "Aberto",
+              "category": "Proposed"
+            },
+            {
+              "name": "Em Andamento",
+              "category": "InProgress"
+            },
+            {
+              "name": "Concluído",
+              "category": "Completed"
+            },
+            {
+              "name": "Removido",
+              "category": "Removed"
+            }
+          ],
+          "required_on_create": [
+            "Custom.Necessitadedesenvolvimento",
+            "Microsoft.VSTS.Common.ValueArea",
+            "System.AreaPath",
+            "System.IterationPath",
+            "System.Title"
+          ],
+          "required_by_rule": [
+            {
+              "fields": [
+                "Custom.342c7909-492b-4d82-9c7f-4ec790a0482b",
+                "Custom.Chamadodedesenvolvimento",
+                "Custom.Equipededesenvolvimento",
+                "Custom.b44db1f4-04ce-43e7-8ab1-261ec85c2713"
+              ],
+              "conditions": [
+                {
+                  "type": "when",
+                  "field": "Custom.Necessitadedesenvolvimento",
+                  "value": "Sim"
+                }
+              ],
+              "when": "Custom.Necessitadedesenvolvimento=Sim",
+              "source": "rule:Exigir equipe para desenvolvimento"
+            }
+          ],
+          "defaults": {
+            "Custom.Necessitadedesenvolvimento": "Não",
+            "Microsoft.VSTS.CMMI.Blocked": "No",
+            "Microsoft.VSTS.Common.Priority": 2,
+            "Microsoft.VSTS.Common.ValueArea": "Business"
+          },
+          "picklists": {
+            "Custom.Equipededesenvolvimento": [
+              "CIÊNCIA DE DADOS",
+              "FÁBRICA DE SOFTWARE",
+              "HIPERAUTOMAÇÃO"
+            ],
+            "Custom.Necessitadedesenvolvimento": [
+              "Não",
+              "Sim"
+            ],
+            "Microsoft.VSTS.CMMI.Blocked": [
+              "No",
+              "Yes"
+            ],
+            "Microsoft.VSTS.Common.Priority": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "Microsoft.VSTS.Common.ValueArea": [
+              "Architectural",
+              "Business"
+            ]
+          },
+          "fields": {
+            "Custom.342c7909-492b-4d82-9c7f-4ec790a0482b": {
+              "name": "Responsável pelo desenvolvimento 1",
+              "type": "string",
+              "identity": true
+            },
+            "Custom.Chamadodedesenvolvimento": {
+              "name": "Chamado de desenvolvimento",
+              "type": "string"
+            },
+            "Custom.Equipededesenvolvimento": {
+              "name": "Equipe de desenvolvimento",
+              "type": "string"
+            },
+            "Custom.Necessitadedesenvolvimento": {
+              "name": "Necessita de desenvolvimento",
+              "type": "string"
+            },
+            "Custom.b44db1f4-04ce-43e7-8ab1-261ec85c2713": {
+              "name": "Responsável pelos testes",
+              "type": "string",
+              "identity": true
+            },
+            "Microsoft.VSTS.CMMI.Blocked": {
+              "name": "Blocked",
+              "type": "string"
+            },
+            "Microsoft.VSTS.Common.Priority": {
+              "name": "Priority",
+              "type": "integer"
+            },
+            "Microsoft.VSTS.Common.ValueArea": {
+              "name": "Value Area",
+              "type": "string"
+            },
+            "System.AreaPath": {
+              "name": "Area Path",
+              "type": "treePath"
+            },
+            "System.IterationPath": {
+              "name": "Iteration Path",
+              "type": "treePath"
+            },
+            "System.Title": {
+              "name": "Title",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "link_types": [
+    "System.LinkTypes.Hierarchy-Reverse",
+    "System.LinkTypes.Hierarchy-Forward",
+    "System.LinkTypes.Related",
+    "System.LinkTypes.Dependency-Forward",
+    "System.LinkTypes.Dependency-Reverse",
+    "Hyperlink",
+    "AttachedFile"
+  ],
+  "api": {
+    "wit": "7.1",
+    "comments": "7.1-preview.4"
+  }
+}
