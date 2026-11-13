@@ -28,7 +28,8 @@ EXPECTED = {
     "ado_iterations", "ado_get", "ado_query", "ado_children", "ado_comments", "ado_resolve_identity",
     "ado_type_schema", "ado_discover_org", "ado_profile_save", "ado_set_defaults",
     "ado_prepare_create", "ado_prepare_update", "ado_prepare_comment", "ado_prepare_attach", "ado_apply",
-    "ado_reconcile",
+    "ado_reconcile", "ado_backlog", "ado_sprint_items", "ado_prepare_move_to_sprint", "ado_prepare_create_sprint",
+    "ado_prepare_sprint_rollover", "ado_prepare_delete", "ado_prepare_comments_batch",
 }
 
 
@@ -114,7 +115,7 @@ class Base(unittest.TestCase):
 class RegistryTest(unittest.TestCase):
     def test_nomes_exatos(self):
         self.assertEqual(set(tools.TOOLS), EXPECTED)
-        self.assertEqual(len(tools.tool_list()), 22)
+        self.assertEqual(len(tools.tool_list()), 29)
 
     def test_esquemas(self):
         for t in tools.tool_list():
@@ -127,7 +128,8 @@ class RegistryTest(unittest.TestCase):
 
     def test_apply_tem_as_chaves_de_apply_args(self):
         props = set(tools.TOOLS["ado_apply"].schema["properties"])
-        self.assertEqual(props, {"preview_id", "hash", "operation", "org", "target_id", "type", "title", "file_name"})
+        self.assertEqual(props, {"preview_id", "hash", "operation", "org", "target_id", "type", "title", "file_name",
+                                 "iteration", "count"})
         self.assertTrue(tools.tool_list()[[t["name"] for t in tools.tool_list()].index("ado_apply")]
                         ["annotations"]["destructiveHint"])
 
@@ -135,13 +137,17 @@ class RegistryTest(unittest.TestCase):
         for n in ("ado_status", "ado_get", "ado_query", "ado_children", "ado_comments", "ado_whoami",
                   "ado_discover_org", "ado_type_schema"):
             self.assertTrue(tools.TOOLS[n].read_only, n)
-        for n in ("ado_apply", "ado_prepare_create", "ado_set_defaults", "ado_profile_save"):
+        for n in ("ado_backlog", "ado_sprint_items"):
+            self.assertTrue(tools.TOOLS[n].read_only, n)
+        for n in ("ado_apply", "ado_prepare_create", "ado_set_defaults", "ado_profile_save", "ado_prepare_delete",
+                  "ado_prepare_move_to_sprint", "ado_prepare_create_sprint", "ado_prepare_sprint_rollover",
+                  "ado_prepare_comments_batch"):
             self.assertFalse(tools.TOOLS[n].read_only, n)
 
     def test_validador(self):
         s = tools.TOOLS["ado_apply"].schema
         self.assertEqual(tools.validate_args(s, {"preview_id": "a", "hash": "b", "operation": "create", "org": "x"}), [])
-        errs = tools.validate_args(s, {"preview_id": 1, "operation": "delete", "x": 1})
+        errs = tools.validate_args(s, {"preview_id": 1, "operation": "destroy", "x": 1})
         text = " ".join(errs)
         for frag in ("preview_id: esperado string", "hash: obrigatório", "operation: use um destes", "x: argumento desconhecido"):
             self.assertIn(frag, text)

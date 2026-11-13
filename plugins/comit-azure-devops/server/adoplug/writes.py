@@ -283,6 +283,8 @@ class Writes:
         self.clock = clock
         self.home = home
         self.config_dir = config_dir
+        from .batch import Batch  # import tardio: batch usa os auxiliares deste módulo
+        self.batch = Batch(self)
         # apply e reconcile da mesma sessão não correm em paralelo (o journal é lido e regravado).
         self._lock = threading.RLock()
 
@@ -595,39 +597,47 @@ class Writes:
                         team: Optional[str] = None) -> Dict[str, Any]:
         """`text` (escapado) ou `html` (lista fechada). Menção: {id, displayName} já resolvida ou texto de busca."""
         try:
-            if (text is None) == (html is None):
-                raise AdoApiError("COMMENT_BODY", "Informe text ou html, um dos dois.")
-            body = htmlsafe.sanitize(html) if html is not None else htmlsafe.text_to_html(text or "")
-            if not htmlsafe.to_text(body):
-                raise AdoApiError("COMMENT_EMPTY", "O comentário está vazio.")
-            n = check_id(item_id)
-            raw = self.api.get_raw(org, n, "none", ["System.Title", "System.TeamProject", "System.WorkItemType"])
-            proj = self.api.item_project(org, raw)
-            pid = check_guid(proj["id"])
-            resolved = []
-            for m in mentions or []:
-                if isinstance(m, Mapping) and m.get("id"):
-                    resolved.append({"id": str(m["id"]), "displayName": str(m.get("displayName") or "")})
-                    continue
-                cands = self.api.resolve_identity(org, str(m), project or pid, team)
-                if not cands:
-                    raise AdoApiError("IDENTITY_NOT_FOUND", f"Ninguém encontrado para a menção '{m}'.")
-                if len(cands) > 1:
-                    raise NeedsDecision("IDENTITY_AMBIGUOUS", f"Mais de uma pessoa para a menção '{m}'.", cands)
-                resolved.append({"id": cands[0]["id"], "displayName": cands[0]["displayName"] or ""})
-            head = " ".join(htmlsafe.mention(r["id"], r["displayName"]) for r in resolved)
-            final = (head + "<br>" + body) if head else body
-            title = str((raw.get("fields") or {}).get("System.Title") or "")
-            route = self.api.comment_route(pid, n)
-            plan = {"project_id": pid, "target_id": n, "path": route, "api_version": COMMENTS_API,
-                    "body": {"text": final}}
-            display = {"id": n, "title": title, "project": proj, "html": final, "text": htmlsafe.to_text(final),
-                       "mentions": [r["displayName"] for r in resolved]}
-            rec = self.store.create("comment", org, plan, {"target_id": n, "title": title}, display)
+            plan, display = self.comment_parts(org, item_id, text, html, mentions, project, team)
+            rec = self.store.create("comment", org, plan, {"target_id": plan["target_id"], "title": display["title"]},
+                                    display)
             return envelope("ok", "PREVIEW_READY", self._preview_data(rec),
                             "Mostre o texto e o HTML e peça o OK. Só então chame ado_apply com apply_args.")
         except (AdoApiError, NeedsDecision, PreviewError, htmlsafe.HtmlError) as e:
             return _err(e)
+
+    def comment_parts(self, org: str, item_id: Any, text: Optional[str], html: Optional[str],
+                      mentions: Optional[Sequence[Any]], project: Optional[str], team: Optional[str]
+                      ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """Plano e prévia de um comentário. Levanta `AdoApiError`, `NeedsDecision` ou `HtmlError`."""
+        if (text is None) == (html is None):
+            raise AdoApiError("COMMENT_BODY", "Informe text ou html, um dos dois.")
+        body = htmlsafe.sanitize(html) if html is not None else htmlsafe.text_to_html(text or "")
+        if not htmlsafe.to_text(body):
+            raise AdoApiError("COMMENT_EMPTY", "O comentário está vazio.")
+        n = check_id(item_id)
+        raw = self.api.get_raw(org, n, "none", ["System.Title", "System.TeamProject", "System.WorkItemType"])
+        proj = self.api.item_project(org, raw)
+        pid = check_guid(proj["id"])
+        resolved = []
+        for m in mentions or []:
+            if isinstance(m, Mapping) and m.get("id"):
+                resolved.append({"id": str(m["id"]), "displayName": str(m.get("displayName") or "")})
+                continue
+            cands = self.api.resolve_identity(org, str(m), project or pid, team)
+            if not cands:
+                raise AdoApiError("IDENTITY_NOT_FOUND", f"Ninguém encontrado para a menção '{m}'.")
+            if len(cands) > 1:
+                raise NeedsDecision("IDENTITY_AMBIGUOUS", f"Mais de uma pessoa para a menção '{m}'.", cands)
+            resolved.append({"id": cands[0]["id"], "displayName": cands[0]["displayName"] or ""})
+        head = " ".join(htmlsafe.mention(r["id"], r["displayName"]) for r in resolved)
+        final = (head + "<br>" + body) if head else body
+        title = str((raw.get("fields") or {}).get("System.Title") or "")
+        route = self.api.comment_route(pid, n)
+        plan = {"project_id": pid, "target_id": n, "path": route, "api_version": COMMENTS_API,
+                "body": {"text": final}}
+        display = {"id": n, "title": title, "project": proj, "html": final, "text": htmlsafe.to_text(final),
+                   "mentions": [r["displayName"] for r in resolved]}
+        return plan, display
 
     # --- attach -----------------------------------------------------------------------
 
@@ -654,9 +664,10 @@ class Writes:
 
     def apply(self, preview_id: str, hash: str, operation: str, org: str, target_id: Optional[Any] = None,  # noqa: A002
               type: Optional[str] = None, title: Optional[str] = None,  # noqa: A002
-              file_name: Optional[str] = None) -> Dict[str, Any]:
+              file_name: Optional[str] = None, iteration: Optional[str] = None,
+              count: Optional[int] = None) -> Dict[str, Any]:
         claims = {"operation": operation, "org": org, "target_id": target_id, "type": type, "title": title,
-                  "file_name": file_name}
+                  "file_name": file_name, "iteration": iteration, "count": count}
         with self._lock:
             return self._apply(preview_id, hash, claims)
 
@@ -674,7 +685,11 @@ class Writes:
                 return self._apply_update(rec)
             if op == "comment":
                 return self._apply_comment(rec)
-            return self._apply_attach(rec)
+            if op == "attach":
+                return self._apply_attach(rec)
+            if op in self.batch.OPERATIONS:
+                return self.batch.apply(rec)
+            return envelope("blocked", "OPERATION_UNKNOWN", {"preview_id": preview_id}, "Operação desconhecida.")
         except (AdoApiError, PreviewError) as e:
             return _err(e)
 
@@ -887,8 +902,12 @@ class Writes:
                 outcome, extra = self._rec_update(rec)
             elif op == "comment":
                 outcome, extra = self._rec_comment(rec)
-            else:
+            elif op == "attach":
                 outcome, extra = self._rec_attach(rec)
+            elif op in self.batch.OPERATIONS:
+                return self.batch.reconcile(rec)
+            else:
+                return envelope("blocked", "OPERATION_UNKNOWN", {"preview_id": preview_id}, "Operação desconhecida.")
         except AdoApiError as e:
             return envelope("blocked", "RECONCILE_FAILED", {"preview_id": preview_id, "outcome": "ambiguous"},
                             "Não consegui conferir o efeito. Tente ado_reconcile de novo mais tarde; não reenvie.",

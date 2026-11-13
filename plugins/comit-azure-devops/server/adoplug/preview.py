@@ -9,7 +9,7 @@ Estados:
 - `prepared`: pronta para o `apply`.
 - `applying`: o envio começou. Se o processo cair aqui, só a reconciliação decide.
 - `applied`: efeito confirmado.
-- `partial`: anexo enviado, relação ainda não gravada. O `apply` continua sem novo upload.
+- `partial`: anexo enviado sem relação, ou lote com passos pendentes. O `apply` continua do ponto em que parou.
 - `ambiguous`: o envio pode ou não ter gerado efeito. Só a reconciliação decide.
 - `failed`: o ADO recusou. Prepare de novo.
 - `not_applied`: a reconciliação não achou efeito. Prepare de novo.
@@ -39,6 +39,12 @@ READABLE_KEYS = {
     "update": ("operation", "org", "target_id", "title"),
     "comment": ("operation", "org", "target_id", "title"),
     "attach": ("operation", "org", "target_id", "file_name"),
+    # Operações em lote (vários pedidos, um por passo): ver `batch.py`.
+    "move": ("operation", "org", "iteration", "count"),
+    "create_sprint": ("operation", "org", "title"),
+    "delete": ("operation", "org", "target_id", "title"),
+    "rollover": ("operation", "org", "iteration", "count"),
+    "comments_batch": ("operation", "org", "count"),
 }
 
 

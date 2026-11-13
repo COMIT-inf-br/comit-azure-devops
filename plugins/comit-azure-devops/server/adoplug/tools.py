@@ -171,6 +171,21 @@ class Context:
             raise stop("needs_decision", "PROJECT_REQUIRED", "Informe o projeto (nome ou GUID).")
         return self.api.project(org, str(p))
 
+    def team(self, org: str, proj: Mapping[str, Any], a: Mapping[str, Any]) -> str:
+        """Team do pedido ou o padrão da pessoa no projeto (ado_set_defaults)."""
+        team = a.get("team")
+        if not team:
+            for k, v in ((self.cfg["orgs"][org].get("defaults")) or {}).items():
+                if str(k).casefold() == proj["id"].casefold():
+                    team = (v or {}).get("team")
+        if not team:
+            raise stop("needs_decision", "TEAM_REQUIRED", "Informe o team (ado_list_teams lista as opções).")
+        return str(team)
+
+    @property
+    def planning(self):
+        return self.writes.batch.plan
+
     def az(self) -> Optional[Any]:
         f = getattr(self.auth, "az", None)
         return f() if f else None
@@ -444,15 +459,37 @@ def t_teams(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
 def t_iterations(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
     org = ctx.org(a)
     proj = ctx.project(org, a)
-    team = a.get("team")
-    if not team:
-        for k, v in ((ctx.cfg["orgs"][org].get("defaults")) or {}).items():
-            if str(k).casefold() == proj["id"].casefold():
-                team = (v or {}).get("team")
-    if not team:
-        raise stop("needs_decision", "TEAM_REQUIRED", "Informe o team (ado_list_teams lista as opções).")
+    team = ctx.team(org, proj, a)
     rows = ctx.api.iterations(org, proj["id"], team, a.get("timeframe") or "current")
     return ok({"count": len(rows), "iterations": rows})
+
+
+TEAM = {"type": "string", "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."}
+ITERATION = {"type": "string", "description": "Sprint: nome, caminho (Projeto\\Sprint 3) ou GUID."}
+
+
+@tool("ado_backlog", "Backlog do time",
+      "Itens do time ainda sem sprint: iteração de backlog do time, áreas do time e estados abertos por padrão. "
+      "Sem types, usa os tipos de requisito do processo. Ordena pela prioridade do backlog quando o campo existe.",
+      S({"org": ORG, "project": PROJECT, "team": TEAM, "types": {"type": "array", "items": {"type": "string"}},
+         "state_category": {"type": "string", "description": "Proposed, InProgress, Resolved, Completed, Removed "
+                                                              "ou open (padrão)."},
+         "top": {"type": "integer", "description": "Máximo de itens (1 a 200, padrão 100)."}}))
+def t_backlog(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    org = ctx.org(a)
+    proj = ctx.project(org, a)
+    return ok(ctx.planning.backlog(org, proj["id"], ctx.team(org, proj, a), a.get("types"), a.get("state_category"),
+                                   a.get("top") or 100))
+
+
+@tool("ado_sprint_items", "Itens da sprint",
+      "Itens de uma sprint do time (padrão: a atual), com pai, estado, responsável e esforço "
+      "(RemainingWork, OriginalEstimate, CompletedWork). Traz totais por pessoa.",
+      S({"org": ORG, "project": PROJECT, "team": TEAM, "iteration": ITERATION}))
+def t_sprint_items(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    org = ctx.org(a)
+    proj = ctx.project(org, a)
+    return ok(ctx.planning.sprint_items(org, proj["id"], ctx.team(org, proj, a), a.get("iteration")))
 
 
 @tool("ado_get", "Ler work item", "Lê um work item: campos, relações, parent, filhos, URL web, estado e categoria.",
@@ -691,17 +728,83 @@ def t_prepare_attach(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
     return ctx.writes.prepare_attach(ctx.org(a), a["id"], a["file_path"], a.get("comment"))
 
 
+@tool("ado_prepare_move_to_sprint", "Preparar mudança de sprint",
+      "Fase 1: move 1 ou mais itens para uma sprint do time (ou iteration=backlog). include_children (padrão true) "
+      "leva as filhas não concluídas. Lê cada item, trava a revisão e valida com validateOnly. Não altera nada.",
+      S({"org": ORG, "project": PROJECT, "team": TEAM, "ids": {"type": "array", "items": ITEM_ID},
+         "iteration": ITERATION, "include_children": {"type": "boolean"}}, ("ids", "iteration")), read_only=False)
+def t_prepare_move(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    org = ctx.org(a)
+    proj = ctx.project(org, a)
+    return ctx.writes.batch.prepare_move(org, proj["id"], ctx.team(org, proj, a), a["ids"], a["iteration"],
+                                         a.get("include_children", True))
+
+
+@tool("ado_prepare_create_sprint", "Preparar nova sprint",
+      "Fase 1: cria a iteração e a associa ao time. Sem nome e datas, sugere a próxima pelo padrão do time "
+      "(número + 1, datas logo depois da última). Se o nó já existir fora do time, só associa. Não cria nada.",
+      S({"org": ORG, "project": PROJECT, "team": TEAM, "name": {"type": "string"},
+         "start_date": {"type": "string", "description": "AAAA-MM-DD"},
+         "finish_date": {"type": "string", "description": "AAAA-MM-DD"},
+         "assign_to_team": {"type": "boolean", "description": "Padrão true."}}), read_only=False)
+def t_prepare_create_sprint(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    org = ctx.org(a)
+    proj = ctx.project(org, a)
+    return ctx.writes.batch.prepare_create_sprint(org, proj["id"], ctx.team(org, proj, a), a.get("name"),
+                                                  a.get("start_date"), a.get("finish_date"),
+                                                  a.get("assign_to_team", True))
+
+
+@tool("ado_prepare_sprint_rollover", "Preparar virada de sprint",
+      "Fase 1: lista o que não está concluído na sprint de origem (padrão: a atual) e prepara a mudança para a "
+      "próxima. Se a próxima não existir e create_if_missing=true (padrão), inclui a criação dela. Não altera nada.",
+      S({"org": ORG, "project": PROJECT, "team": TEAM, "from_iteration": ITERATION, "to_iteration": ITERATION,
+         "create_if_missing": {"type": "boolean"}}), read_only=False)
+def t_prepare_rollover(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    org = ctx.org(a)
+    proj = ctx.project(org, a)
+    return ctx.writes.batch.prepare_rollover(org, proj["id"], ctx.team(org, proj, a), a.get("from_iteration"),
+                                             a.get("to_iteration"), a.get("create_if_missing", True))
+
+
+@tool("ado_prepare_delete", "Preparar exclusão",
+      "Fase 1: exclui o work item para a lixeira do projeto (recuperável; nunca em definitivo). Com filhos, exige "
+      "include_children=true para excluir a árvore. Não exclui nada.",
+      S({"org": ORG, "id": ITEM_ID, "include_children": {"type": "boolean"}}, ("id",)), read_only=False)
+def t_prepare_delete(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    return ctx.writes.batch.prepare_delete(ctx.org(a), a["id"], a.get("include_children"))
+
+
+BATCH_COMMENT = S({"id": ITEM_ID, "text": {"type": "string"}, "html": {"type": "string"},
+                   "mentions": {"type": "array", "items": {"anyOf": [
+                       {"type": "string"}, S({"id": {"type": "string"}, "displayName": {"type": "string"}}, ("id",))]}}},
+                  ("id",))
+
+
+@tool("ado_prepare_comments_batch", "Preparar lote de comentários",
+      "Fase 1: vários comentários (um por item) numa prévia só, com um hash. Cada item leva text ou html e "
+      "mentions. Resolve as menções no team. Não envia nada.",
+      S({"org": ORG, "project": PROJECT, "team": TEAM, "items": {"type": "array", "items": BATCH_COMMENT},
+         "source_label": {"type": "string", "description": "Origem do lote, por exemplo: Daily 13/11."}},
+        ("items",)), read_only=False)
+def t_prepare_comments_batch(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
+    org = ctx.org(a)
+    return ctx.writes.batch.prepare_comments(org, a.get("project"), a.get("team"), a["items"], a.get("source_label"))
+
+
 @tool("ado_apply", "Aplicar prévia",
       "Fase 2: envia ao Azure DevOps a prévia aprovada. Use os apply_args exatos do ado_prepare_*, só depois do OK "
-      "explícito da pessoa para aquela prévia. Nunca chame sem OK.",
+      "explícito da pessoa para aquela prévia. Nunca chame sem OK. Em lote parcial, repetir envia só os pendentes.",
       S({"preview_id": {"type": "string"}, "hash": {"type": "string"},
-         "operation": {"enum": ["create", "update", "comment", "attach"]}, "org": {"type": "string"},
+         "operation": {"enum": ["create", "update", "comment", "attach", "move", "create_sprint", "delete",
+                                "rollover", "comments_batch"]}, "org": {"type": "string"},
          "target_id": ITEM_ID, "type": {"type": "string"}, "title": {"type": "string"},
-         "file_name": {"type": "string"}}, ("preview_id", "hash", "operation", "org")), read_only=False)
+         "file_name": {"type": "string"}, "iteration": {"type": "string"}, "count": {"type": "integer"}},
+        ("preview_id", "hash", "operation", "org")), read_only=False)
 def t_apply(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
     org = ctx.org(a)
     return ctx.writes.apply(a["preview_id"], a["hash"], a["operation"], org, a.get("target_id"), a.get("type"),
-                            a.get("title"), a.get("file_name"))
+                            a.get("title"), a.get("file_name"), a.get("iteration"), a.get("count"))
 
 
 @tool("ado_reconcile", "Reconciliar envio incerto",
