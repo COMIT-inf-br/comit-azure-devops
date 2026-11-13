@@ -9,6 +9,10 @@ Plugin do Claude Code e do Claude Cowork para operar work items do Azure DevOps 
 /plugin install comit-azure-devops@comit-azure-devops
 ```
 
+## Versão
+
+A versão atual é a 0.1.0 (ainda não publicada). Ela traz o servidor MCP local, as sete skills por intenção, a escrita em duas fases (prévia, OK, `ado_apply`), os perfis embutidos e a descoberta de organização nova. O histórico está em [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Requisitos
 
 - `uv` (instalação sem admin).
@@ -50,5 +54,6 @@ Veja [`SECURITY.md`](SECURITY.md) e as [permissões recomendadas](plugins/comit-
 
 - `.claude-plugin/marketplace.json`: marketplace.
 - `plugins/comit-azure-devops/`: o plugin (skills, servidor MCP, perfis, docs).
+- `plugins/comit-azure-devops/evals/`: suíte do `claude plugin eval` (disparo por intenção).
 - `scripts/check_identity.py`: confere que o repositório não leva identidade pessoal nem segredo.
 - `CHANGELOG.md`: histórico de versões.

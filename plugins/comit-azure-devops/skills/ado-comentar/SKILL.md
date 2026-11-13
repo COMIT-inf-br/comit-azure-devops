@@ -10,9 +10,9 @@ Esta skill escreve no Azure DevOps. Ela não envia nada antes do OK explícito d
 ## Passos
 
 1. Se as ferramentas `ado_*` não existirem, mostre a mensagem fixa da skill `azure-devops` (passo 7) e ofereça montar o rascunho do payload. Se não, chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
-2. Escreva o comentário em HTML, não em Markdown. Tags aceitas: `<br>`, `<strong>`, `<code>`, `<a>`, `<ul>`, `<li>`.
-3. Para cada pessoa citada, chame `ado_resolve_identity`. Se houver dois candidatos ou mais, pergunte qual.
-4. Chame `ado_prepare_comment` com `html` e `mentions`.
+2. Escreva o comentário em HTML, não em Markdown. Tags aceitas: `<br>`, `<strong>`, `<code>`, `<a>`, `<ul>`, `<li>`. Para texto simples, passe `text` em vez de `html`. Nunca passe os dois.
+3. Para cada pessoa citada, escolha a forma da menção em `mentions`: o texto de busca (nome ou e-mail) ou `{id, displayName}` de uma pessoa já resolvida.
+4. Chame `ado_prepare_comment` com `html` (ou `text`) e `mentions`. Se um texto de busca achar dois candidatos ou mais (`IDENTITY_AMBIGUOUS`), pergunte qual e repita com `{id, displayName}`. Para ver os candidatos antes, chame `ado_resolve_identity`.
 5. Mostre a prévia completa: o texto legível e o HTML final.
 6. Pergunte: "Aprovar ou ajustar?" Espere o OK explícito.
 7. Chame `ado_apply` com os valores de `apply_args` da prévia (`preview_id`, `hash`, `operation`, `org`, `target_id`, `title`).

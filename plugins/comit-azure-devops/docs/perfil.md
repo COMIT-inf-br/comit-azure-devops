@@ -35,7 +35,7 @@ A skill `ado-configurar` chama `ado_discover_org`. A descoberta só lê (GET):
 4. Lê campos, listas de valores e estados de cada tipo.
 5. Lê as regras do processo que tornam um campo obrigatório.
 
-A skill mostra a proposta e pergunta antes de gravar. Depois do sim, `ado_profile_save` grava o perfil na configuração local.
+O `ado_status` avisa `PROFILE_ABSENT` quando a organização não tem perfil. Nesse caso a skill chama `ado_discover_org`. Ela mostra o resumo da proposta e, se já houver perfil, a diferença contra ele. Depois do seu sim, `ado_profile_save(proposal_id, confirm=true)` grava o perfil na configuração local. A proposta fica só na memória do servidor: se o servidor reiniciar, rode a descoberta de novo.
 
 ## A validação final
 

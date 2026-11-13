@@ -35,7 +35,7 @@ Peça no chat: "configura o Azure DevOps". A skill `ado-configurar` conduz estes
 3. Mostra quem você é e pergunta se grava como responsável padrão.
 4. Usa o perfil embutido da organização ou descobre o perfil (veja `perfil.md`).
 
-Se o navegador não abrir, a skill usa o código de dispositivo: ela mostra uma URL e um código.
+Se o navegador não abrir, a skill usa o código de dispositivo: ela mostra uma URL e um código. A skill acompanha o login chamando `ado_auth_login` de novo ou `ado_status`.
 
 ## Onde fica a configuração local
 

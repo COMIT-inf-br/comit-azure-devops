@@ -58,6 +58,52 @@ O perfil diz ao plugin quais campos cada tipo exige. O plugin traz perfis embuti
 
 Detalhes e como relatar uma falha: [`../../SECURITY.md`](../../SECURITY.md).
 
+## Testar localmente antes de instalar
+
+Use um clone deste repositório. Troque `<caminho>` pelo caminho do clone.
+
+### Carregar o plugin direto da pasta
+
+```text
+claude --plugin-dir <caminho>/plugins/comit-azure-devops
+```
+
+O plugin vale só para essa sessão. Nada fica instalado.
+
+### Instalar pelo marketplace local
+
+Dentro do Claude Code:
+
+```text
+/plugin marketplace add <caminho-do-repo>
+/plugin install comit-azure-devops@comit-azure-devops
+```
+
+`<caminho-do-repo>` é a raiz do clone, a pasta que tem `.claude-plugin/marketplace.json`. Para remover depois: `/plugin uninstall comit-azure-devops@comit-azure-devops` e `/plugin marketplace remove comit-azure-devops`.
+
+### Onde fica a configuração local
+
+| Sistema | Pasta |
+|---|---|
+| macOS | `~/Library/Application Support/comit-azure-devops/` |
+| Linux | `${XDG_CONFIG_HOME:-~/.config}/comit-azure-devops/` (o `XDG_CONFIG_HOME` só vale se for caminho absoluto) |
+| Windows | `%APPDATA%\comit-azure-devops\` |
+
+A pasta tem `config.json` (organizações e padrões), `profiles/` (perfis aprendidos) e `previews/`.
+
+### Simular o primeiro uso
+
+1. Feche o Claude.
+2. Renomeie a pasta de configuração, por exemplo para `comit-azure-devops.bak`.
+3. Abra o Claude e peça "configura o Azure DevOps".
+4. Para voltar, apague a pasta nova e renomeie a `.bak` de volta.
+
+Renomear a pasta simula "sem organização" e "sem perfil aprendido". Não apaga o login do Azure CLI (`~/.azure`) nem um PAT que esteja no cofre do sistema ou no NordPass. Para simular também o login, rode `az logout`.
+
+## Evals
+
+A suíte de disparo por intenção fica em `evals/`. Veja [`evals/README.md`](evals/README.md).
+
 ## Permissões recomendadas
 
 As ferramentas de leitura podem ir para `permissions.allow` do seu `settings.json`. O prefixo é `mcp__plugin_comit-azure-devops_ado__`:

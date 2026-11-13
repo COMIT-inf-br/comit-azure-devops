@@ -28,8 +28,13 @@ Escolha uma das duas rotas. O servidor tenta o NordPass primeiro e o cofre do si
 
 1. No app do NordPass, crie um item do tipo senha. Use um título claro, por exemplo `ADO_PAT_<ORG>`.
 2. Cole o PAT no campo de senha.
-3. Informe só o título ao assistente. Ele registra o título na configuração local. O PAT não passa pelo chat.
-4. Se o NordPass estiver travado, rode `np unlock` no terminal e repita.
+3. Registre só a referência, nunca o PAT. Use um dos dois caminhos:
+   - No chat, peça ao assistente. Ele chama `ado_setup_org(auth="pat", pat_ref={nordpass_title, nordpass_folder}, confirm=true)` depois do seu sim. O `nordpass_folder` é opcional.
+   - No terminal: `uv run --python 3.12 --no-project <pasta-do-plugin>/server/ado_cli.py pat-set --org <org> --nordpass-title <título> [--nordpass-folder <pasta>]`.
+4. Os dois caminhos gravam a referência na configuração local. A diferença está em quando a organização passa para `auth=pat`:
+   - `pat-set` lê o PAT, chama o Azure DevOps e só muda a organização para `auth=pat` depois de `http=200`. Se a conferência falhar, a organização continua no modo anterior.
+   - `ado_setup_org` muda para `auth=pat` na hora, sem conferir. Rode `pat-check` logo depois (passo 3).
+5. Se o NordPass estiver travado, rode `np unlock` no terminal e repita.
 
 ### Rota B: cofre do sistema
 
@@ -47,7 +52,7 @@ O comando pede o PAT com entrada oculta e grava no cofre:
 | Windows | Credential Manager | alvo `comit-azure-devops/<org>` |
 | Linux | `secret-tool` | serviço `comit-azure-devops`, conta `<org>` |
 
-O comando relê o valor e confere a gravação. Ele não imprime o PAT.
+O comando relê o valor e confere a gravação. Depois chama o Azure DevOps com o PAT. Se der `http=200`, ele muda a organização para `auth=pat`. Ele não imprime o PAT.
 
 ## 3. Confira
 
