@@ -17,11 +17,20 @@ import copy
 import datetime as dt
 import json
 import re
+import socketserver
 import threading
 import uuid
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qsl, unquote, urlsplit
+
+class LocalHTTPServer(ThreadingHTTPServer):
+    """Sem `getfqdn` no bind: o DNS reverso de 127.0.0.1 trava ~30 s no runner macOS do CI."""
+
+    def server_bind(self):
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
+
 
 DISCOVERY_FIXTURE = Path(__file__).resolve().parents[1] / "discovery" / "org_exemplo.json"
 GUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -165,7 +174,7 @@ class FakeAdo:
             def log_message(self, *a):
                 pass
 
-        self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), H)
+        self.httpd = LocalHTTPServer(("127.0.0.1", 0), H)
         self.base = f"http://127.0.0.1:{self.httpd.server_address[1]}"
         threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
 

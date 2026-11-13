@@ -3,6 +3,7 @@ import contextlib
 import io
 import json
 import logging
+import socketserver
 import sys
 import threading
 import unittest
@@ -17,6 +18,14 @@ from adoplug import http as adohttp  # noqa: E402
 from adoplug.auth import AuthManager, Credential  # noqa: E402
 from adoplug.azcli import AzCli  # noqa: E402
 from adoplug.vault import Secret  # noqa: E402
+
+
+class LocalHTTPServer(ThreadingHTTPServer):
+    """Sem `getfqdn` no bind: o DNS reverso de 127.0.0.1 trava ~30 s no runner macOS do CI."""
+
+    def server_bind(self):
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
 
 
 class Server:
@@ -52,7 +61,7 @@ class Server:
             def log_message(self, *a):
                 pass
 
-        self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), H)
+        self.httpd = LocalHTTPServer(("127.0.0.1", 0), H)
         self.base = f"http://127.0.0.1:{self.httpd.server_address[1]}"
         threading.Thread(target=self.httpd.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
 
