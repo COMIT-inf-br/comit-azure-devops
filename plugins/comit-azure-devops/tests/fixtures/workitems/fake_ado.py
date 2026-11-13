@@ -6,7 +6,10 @@ Imita o que o S4 depende do ADO real:
 - `test /rev` que recusa revisão velha;
 - comentário só na rota com projeto, com `target="_blank"` devolvido sem aspas;
 - anexo só na rota com GUID do projeto; a relação volta na forma do projeto, sem `?fileName`;
-- falhas injetadas: conexão fechada antes ou depois do efeito, e 5xx depois do efeito.
+- falhas injetadas: conexão fechada antes ou depois do efeito, e 5xx depois do efeito;
+- rotas de descoberta (campos, tipos, estados, regras) servidas por
+  `tests/fixtures/discovery/org_exemplo.json`, só em GET e só quando a chave (caminho sem escape +
+  pares da query) bate com a fixture. Os dados são sintéticos.
 
 GUIDs e e-mails são sintéticos. Nenhum pedido sai da máquina.
 """
@@ -16,9 +19,11 @@ import json
 import re
 import threading
 import uuid
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qsl, unquote, urlsplit
 
+DISCOVERY_FIXTURE = Path(__file__).resolve().parents[1] / "discovery" / "org_exemplo.json"
 GUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 PROC = "0a0a0a0a-0000-4000-8000-00000000000a"
 PROJ = "0c0c0c0c-0000-4000-8000-00000000000c"
@@ -116,6 +121,7 @@ class FakeAdo:
         self.next_id = 1000
         self.next_comment = 500
         self.comment_page = 2
+        self.discovery = self._load_discovery()
         self.members = [
             {"identity": {"displayName": "Ana Souza", "uniqueName": "ana@example.com", "id": ANA}},
             {"identity": {"displayName": "Ana Lima", "uniqueName": "ana.lima@example.com", "id": ANA2}},
@@ -167,6 +173,21 @@ class FakeAdo:
         self.httpd.shutdown()
         self.httpd.server_close()
 
+    @staticmethod
+    def _discovery_key(path, query):
+        return unquote(path), tuple(sorted(query.items()))
+
+    def _load_discovery(self):
+        """Respostas de descoberta da fixture, indexadas por (caminho sem escape, query ordenada)."""
+        data = json.loads(DISCOVERY_FIXTURE.read_text(encoding="utf-8"))
+        out = {}
+        for key, resp in data["responses"].items():
+            path, _, qs = key.partition("?")
+            if path == "/_apis/work/processes":  # a lista de processos é a rota própria do fake (muitos testes a usam)
+                continue
+            out[self._discovery_key(path, dict(parse_qsl(qs, keep_blank_values=True)))] = resp
+        return out
+
     # --- apoio dos testes ---------------------------------------------------------------
 
     def fault(self, method, path_regex, action):
@@ -214,6 +235,10 @@ class FakeAdo:
             return 404, {"message": "org"}
         p = unquote(path[len(prefix):])
         j = json.loads(body.decode("utf-8")) if body and "json" in req["headers"].get("content-type", "") else None
+        if method == "GET":
+            found = self.discovery.get(self._discovery_key(p, q))
+            if found is not None:
+                return 200, copy.deepcopy(found)
         m = re.fullmatch(r"/_apis/projects/([^/]+)", p)
         if m and method == "GET":
             for pid, name in self.projects.items():
@@ -224,7 +249,10 @@ class FakeAdo:
             return 200, {"authenticatedUser": {"id": ME, "providerDisplayName": "Eu Mesmo",
                                                "properties": {"Account": {"$value": ME_UNIQUE}}}}
         if p == "/_apis/work/processes":
-            return 200, {"value": [{"typeId": PROC, "name": "Proc", "projects": [
+            return 200, {"value": [{"typeId": PROC, "name": "Proc", "referenceName": "Exemplo.Proc",
+                                    # pai nulo: a descoberta usa o próprio nome como pai (a lista não traz o processo base)
+                                    "parentProcessTypeId": "00000000-0000-0000-0000-000000000000",
+                                    "isEnabled": True, "customizationType": "system", "projects": [
                 {"id": k, "name": v} for k, v in self.projects.items()]}]}
         m = re.fullmatch(r"/_apis/projects/(" + GUID + r")/teams", p)
         if m:
