@@ -441,6 +441,14 @@ class ReadTest(Base):
         d = self.e.call("ado_whoami")["data"]
         self.assertEqual((d["displayName"], d["uniqueName"]), ("Eu Mesmo", fake_ado.ME_UNIQUE))
 
+    def test_connection_data_usa_api_preview(self):
+        # o ADO real recusa api-version=7.1 em connectionData (400); o fake não confere, então o teste confere
+        self.e.call("ado_whoami")
+        self.e.call("ado_status", check_remote=True)
+        qs = [r["query"].get("api-version") for r in self.e.ado.requests if r["path"].endswith("/connectionData")]
+        self.assertTrue(qs)
+        self.assertEqual(set(qs), {"7.1-preview.1"})
+
     def test_projetos_teams_iteracoes(self):
         p = self.e.call("ado_list_projects")["data"]
         self.assertEqual(p["count"], 2)

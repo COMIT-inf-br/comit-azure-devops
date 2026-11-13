@@ -127,6 +127,7 @@ class PatTest(CliBase):
         # o GET de conferência usou o PAT como Basic
         last = self.e.ado.requests[-1]
         self.assertEqual(last["path"], "/OrgA/_apis/connectionData")
+        self.assertEqual(last["query"]["api-version"], "7.1-preview.1")
         self.assertEqual(last["headers"]["authorization"], "Basic " + base64.b64encode(f":{self.pat}".encode()).decode())
         # o valor não passou pelo argv do security
         for entry in self.e.h.log(Path(self.e.keychain)):

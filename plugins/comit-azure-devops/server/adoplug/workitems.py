@@ -16,6 +16,8 @@ from .http import GUID_RE, VSSPS_HOST, AdoHttp, segment
 
 API = "7.1"
 COMMENTS_API = "7.1-preview.4"
+# connectionData ainda é preview: com "7.1" o ADO responde 400 (medido em 13/11/2026).
+CONNECTION_API = "7.1-preview.1"
 BATCH = 200
 MAX_TOP = 200
 DEFAULT_FIELDS = (
@@ -456,7 +458,7 @@ class WorkItemsApi:
     # --- identidade -----------------------------------------------------------------
 
     def whoami(self, org: str) -> Dict[str, Any]:
-        j = self._get(org, "/_apis/connectionData", {})
+        j = self._get(org, "/_apis/connectionData", {"api-version": CONNECTION_API})
         u = (j or {}).get("authenticatedUser") or {}
         acc = ((u.get("properties") or {}).get("Account") or {}).get("$value")
         return {"displayName": u.get("providerDisplayName") or u.get("customDisplayName"),

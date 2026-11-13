@@ -25,6 +25,7 @@ from adoplug import tools, vault  # noqa: E402
 from adoplug.adoapi import AdoApiError  # noqa: E402
 from adoplug.auth import AuthError, AuthManager  # noqa: E402
 from adoplug.http import AdoHttp, HttpError  # noqa: E402
+from adoplug.workitems import CONNECTION_API  # noqa: E402
 
 LOGIN_TIMEOUT = 300
 
@@ -124,7 +125,7 @@ def check_pat(ctx: tools.Context, org: str, out: TextIO) -> int:
         return 1
     _line(out, org=name, fonte=cred.source, encontrado="sim")
     try:
-        r = _http_for(ctx, mgr, name).get(name, "/_apis/connectionData", query={"api-version": "7.1"})
+        r = _http_for(ctx, mgr, name).get(name, "/_apis/connectionData", query={"api-version": CONNECTION_API})
     except HttpError as e:
         _line(out, http="erro", motivo=e.reason_code)
         return 1
