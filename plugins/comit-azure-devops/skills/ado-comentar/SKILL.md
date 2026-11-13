@@ -18,6 +18,12 @@ Esta skill escreve no Azure DevOps. Ela não envia nada antes do OK explícito d
 7. Chame `ado_apply` com os valores de `apply_args` da prévia (`preview_id`, `hash`, `operation`, `org`, `target_id`, `title`).
 8. Confirme que o comentário apareceu na releitura.
 
+## Reunião → comentários
+
+Para transformar uma ata, uma transcrição ou uma daily em comentários, carregue a skill `ado-daily`. Ela propõe um comentário por item e publica tudo com `ado_prepare_comments_batch` e um OK.
+
+Para comentar em vários itens de uma vez, fora de reunião, use `ado_prepare_comments_batch` direto: uma prévia com todos os comentários, um OK, um `ado_apply`.
+
 ## Regras
 
 - A ferramenta cria a menção com o identificador da pessoa. Não monte a menção à mão.

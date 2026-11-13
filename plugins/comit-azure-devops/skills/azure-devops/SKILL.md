@@ -1,6 +1,6 @@
 ---
 name: azure-devops
-description: Use para qualquer pedido sobre Azure DevOps (ADO) e work items: task, user story, bug, feature, épico; criar, consultar, listar o que está atribuído, mudar estado, comentar, anexar evidência, vincular pai ou link. Ex.: "cria uma task na US 123", "o que tenho em aberto no ADO", "muda a 456 para em andamento". Use for any Azure DevOps work item request: create, query, update, comment, attach. Se o projeto tiver skill própria de Azure DevOps para o pedido, use a do projeto.
+description: Use para qualquer pedido sobre Azure DevOps (ADO) e work items: task, user story, bug, feature, épico; criar, consultar, listar o que está atribuído, mudar estado, comentar, anexar evidência, vincular pai ou link, backlog e sprint, daily. Ex.: "cria uma task na US 123", "o que tenho em aberto no ADO", "muda a 456 para em andamento". Use for any Azure DevOps work item request: create, query, update, comment, attach. Se o projeto tiver skill própria de Azure DevOps para o pedido, use a do projeto.
 ---
 
 # Azure DevOps: roteadora
@@ -18,10 +18,12 @@ Esta skill escolhe a operação e a skill certa. Se o projeto atual tiver skill 
 
 | Pedido | Skill |
 |---|---|
-| ler, listar, filtrar, consulta WIQL | `ado-consultar` |
+| ler, listar, filtrar, consulta WIQL, resumir comentários | `ado-consultar` |
+| backlog, montar sprint, mover para sprint, criar sprint, carga da sprint, virada de sprint, excluir item | `ado-sprint` |
+| transcrição, ata ou daily virando comentários | `ado-daily` |
 | criar item | `ado-criar` |
 | mudar estado, campo, pai ou link | `ado-atualizar` |
-| comentar ou mencionar | `ado-comentar` |
+| comentar, mencionar ou comentar em vários itens | `ado-comentar` |
 | anexar arquivo ou evidência | `ado-anexar` |
 | login, org nova, perfil, PAT | `ado-configurar` |
 
