@@ -54,7 +54,7 @@ O perfil diz ao plugin quais campos cada tipo exige. O plugin traz perfis embuti
 - O servidor só envia credencial a `https://dev.azure.com/<org>` de uma organização configurada.
 - Toda escrita passa por prévia completa, OK explícito e `ado_apply`.
 - A criação usa `validateOnly` antes do envio. O plugin nunca usa `bypassRules`.
-- Anexos de pastas de credencial são recusados.
+- O servidor recusa anexos de pastas de credencial.
 
 Detalhes e como relatar uma falha: [`../../SECURITY.md`](../../SECURITY.md).
 

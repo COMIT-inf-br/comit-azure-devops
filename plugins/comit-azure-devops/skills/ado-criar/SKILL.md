@@ -5,11 +5,11 @@ description: Use para criar work item no Azure DevOps: task, user story, bug, fe
 
 # Azure DevOps: criar
 
-Esta skill escreve no Azure DevOps. Nada é enviado antes do OK explícito da pessoa.
+Esta skill escreve no Azure DevOps. Ela não envia nada antes do OK explícito da pessoa.
 
 ## Passos
 
-1. Chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
+1. Se as ferramentas `ado_*` não existirem, mostre a mensagem fixa da skill `azure-devops` (passo 7) e ofereça montar o rascunho do payload. Se não, chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
 2. Resolva org, projeto e tipo. Se houver item pai, use o projeto dele.
 3. Chame `ado_type_schema`. Ele mostra os obrigatórios na criação, as listas de valores e os padrões.
 4. Preencha pelo contexto: caminho de área do pai, sprint (`ado_iterations`), datas, responsável padrão e padrões do perfil.
@@ -19,7 +19,7 @@ Esta skill escreve no Azure DevOps. Nada é enviado antes do OK explícito da pe
 8. Mostre a prévia completa: tabela de campos, pai, aviso de duplicata e resultado da validação.
 9. Se o Azure DevOps recusar a validação, mostre os campos citados e volte ao passo 5.
 10. Pergunte: "Aprovar ou ajustar?" Espere o OK explícito.
-11. Chame `ado_apply` com `preview_id`, `hash`, `operation=create`, `org`, `type` e `title`.
+11. Chame `ado_apply` com os valores de `apply_args` da prévia (`preview_id`, `hash`, `operation`, `org`, `type`, `title`).
 12. Mostre id, URL, estado e pai lidos de volta.
 
 ## Regras

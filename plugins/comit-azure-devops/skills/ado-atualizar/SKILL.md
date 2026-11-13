@@ -5,16 +5,16 @@ description: Use para mudar estado ou campos de work item do Azure DevOps: "inic
 
 # Azure DevOps: atualizar
 
-Esta skill escreve no Azure DevOps. Nada é enviado antes do OK explícito da pessoa.
+Esta skill escreve no Azure DevOps. Ela não envia nada antes do OK explícito da pessoa.
 
 ## Passos
 
-1. Chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
+1. Se as ferramentas `ado_*` não existirem, mostre a mensagem fixa da skill `azure-devops` (passo 7) e ofereça montar o rascunho do payload. Se não, chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
 2. Chame `ado_get` e leia o item.
 3. Chame `ado_prepare_update` com `fields`, `state_intent`, `add_parent`, `add_hyperlinks` ou `remove_relations`.
 4. Mostre a prévia completa: o que muda, de qual valor para qual valor, e o resultado do `validateOnly`.
 5. Pergunte: "Aprovar ou ajustar?" Espere o OK explícito.
-6. Chame `ado_apply` com `preview_id`, `hash`, `operation=update`, `org`, `target_id` e `title`.
+6. Chame `ado_apply` com os valores de `apply_args` da prévia (`preview_id`, `hash`, `operation`, `org`, `target_id`, `title`).
 7. Mostre estado, pai e relações lidos de volta.
 
 ## Estado por intenção

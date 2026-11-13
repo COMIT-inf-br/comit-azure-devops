@@ -5,17 +5,17 @@ description: Use para comentar em work item do Azure DevOps ou mencionar alguém
 
 # Azure DevOps: comentar
 
-Esta skill escreve no Azure DevOps. Nada é enviado antes do OK explícito da pessoa.
+Esta skill escreve no Azure DevOps. Ela não envia nada antes do OK explícito da pessoa.
 
 ## Passos
 
-1. Chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
+1. Se as ferramentas `ado_*` não existirem, mostre a mensagem fixa da skill `azure-devops` (passo 7) e ofereça montar o rascunho do payload. Se não, chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
 2. Escreva o comentário em HTML, não em Markdown. Tags aceitas: `<br>`, `<strong>`, `<code>`, `<a>`, `<ul>`, `<li>`.
 3. Para cada pessoa citada, chame `ado_resolve_identity`. Se houver dois candidatos ou mais, pergunte qual.
 4. Chame `ado_prepare_comment` com `html` e `mentions`.
 5. Mostre a prévia completa: o texto legível e o HTML final.
 6. Pergunte: "Aprovar ou ajustar?" Espere o OK explícito.
-7. Chame `ado_apply` com `preview_id`, `hash`, `operation=comment`, `org`, `target_id` e `title`.
+7. Chame `ado_apply` com os valores de `apply_args` da prévia (`preview_id`, `hash`, `operation`, `org`, `target_id`, `title`).
 8. Confirme que o comentário apareceu na releitura.
 
 ## Regras

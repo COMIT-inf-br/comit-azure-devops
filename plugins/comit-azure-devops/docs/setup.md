@@ -7,7 +7,7 @@ O plugin precisa de duas instalações: `uv` e Azure CLI (`az`). A autenticaçã
 O `uv` roda o servidor do plugin. A instalação não pede admin.
 
 - macOS e Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Windows (PowerShell 7): `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+- Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 
 Reinicie o Claude depois da instalação. O app gráfico pode não enxergar o `PATH` do terminal. Se o servidor não subir, abra o app pelo terminal ou ponha `~/.local/bin` no `PATH` do sistema.
 

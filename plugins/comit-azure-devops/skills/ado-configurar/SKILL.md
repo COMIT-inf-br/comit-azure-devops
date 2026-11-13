@@ -5,11 +5,13 @@ description: Use quando o Azure DevOps ainda não estiver configurado, o login d
 
 # Azure DevOps: configuração
 
+Se as ferramentas `ado_*` não existirem por falta de servidor (por exemplo, Cowork em nuvem), mostre a mensagem fixa da skill `azure-devops` (passo 7) e ofereça o rascunho do payload. Instalar `uv` não resolve esse caso.
+
 Conduza um passo por vez. Pule o passo cuja condição já esteja resolvida. Peça a decisão da pessoa antes de gravar qualquer coisa.
 
 | Passo | Condição | Ação | Diga à pessoa |
 |---|---|---|---|
-| 1 | O servidor MCP não sobe | Mostre a instalação do `uv`. | "Instale o uv. macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh \| sh`. Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"`. Depois reinicie o Claude." |
+| 1 | O servidor MCP não sobe na máquina local | Mostre a instalação do `uv`. | "Instale o uv. macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh \| sh`. Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"`. Depois reinicie o Claude." |
 | 2 | `az` ausente | Mostre a instalação do Azure CLI. | "Instale o Azure CLI. Sem admin: `uv tool install azure-cli`. Com admin: macOS `brew install azure-cli`; Windows `winget install Microsoft.AzureCLI`." |
 | 3 | Org ausente | Pergunte. Depois do sim, chame `ado_setup_org` com `confirm=true`. | "Qual organização do Azure DevOps? Pode colar o link de um work item." |
 | 4 | Sem login no tenant | Chame `ado_auth_login` com `mode=browser`. | "Vou abrir o login da Microsoft no seu navegador. Entre com a conta da organização." |

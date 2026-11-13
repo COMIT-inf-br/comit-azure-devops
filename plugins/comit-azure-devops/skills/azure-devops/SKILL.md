@@ -9,8 +9,8 @@ Esta skill escolhe a operação e a skill certa. Se o projeto atual tiver skill 
 
 ## Passos
 
-1. Chame `ado_status`.
-2. Se as ferramentas `ado_*` não existirem, vá ao passo 7.
+1. Se as ferramentas `ado_*` não existirem, vá ao passo 7.
+2. Chame `ado_status`.
 3. Se `pending_setup` não estiver vazio, carregue a skill `ado-configurar` e pare.
 4. Se a org colada ou padrão tiver `usage.work_items` igual a `false` no perfil, mostre o `hint` do perfil e pergunte qual org usar.
 5. Extraia org, projeto e id de uma URL colada. Formato: `dev.azure.com/<org>/<projeto>/_workitems/edit/<id>`.

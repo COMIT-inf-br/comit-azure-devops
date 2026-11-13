@@ -9,7 +9,7 @@ Esta skill só lê. Nenhuma ferramenta daqui altera o Azure DevOps.
 
 ## Passos
 
-1. Chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
+1. Se as ferramentas `ado_*` não existirem, mostre a mensagem fixa da skill `azure-devops` (passo 7) e ofereça montar o rascunho do payload. Se não, chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
 2. Escolha a ferramenta:
 
 | Pedido | Ferramenta |

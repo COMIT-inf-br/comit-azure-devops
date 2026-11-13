@@ -5,16 +5,16 @@ description: Use para anexar arquivo ou evidência a work item do Azure DevOps: 
 
 # Azure DevOps: anexar
 
-Esta skill escreve no Azure DevOps. O envio do arquivo só acontece no `ado_apply`, depois do OK explícito.
+Esta skill escreve no Azure DevOps. A skill só envia o arquivo no `ado_apply`, depois do OK explícito.
 
 ## Passos
 
-1. Chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
+1. Se as ferramentas `ado_*` não existirem, mostre a mensagem fixa da skill `azure-devops` (passo 7) e ofereça montar o rascunho do payload. Se não, chame `ado_status`. Se faltar configuração, carregue `ado-configurar`.
 2. Confirme o item alvo e o caminho do arquivo.
 3. Chame `ado_prepare_attach` com `file_path` e `comment`.
 4. Mostre a prévia completa: caminho absoluto resolvido, nome, tamanho, SHA-256, item alvo e texto da relação.
 5. Pergunte: "Aprovar o envio deste arquivo?" Espere o OK explícito.
-6. Chame `ado_apply` com `preview_id`, `hash`, `operation=attach`, `org`, `target_id` e `title` (nome do arquivo).
+6. Chame `ado_apply` com os valores de `apply_args` da prévia (`preview_id`, `hash`, `operation`, `org`, `target_id`, `file_name`).
 7. Confira na releitura que a relação do anexo existe.
 
 ## Regras
