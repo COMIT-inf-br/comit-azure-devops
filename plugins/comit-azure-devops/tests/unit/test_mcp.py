@@ -158,6 +158,16 @@ class ProtocolTest(unittest.TestCase):
         lines = out.getvalue().decode("utf-8").splitlines()
         self.assertEqual([json.loads(l)["id"] for l in lines], [1, 2])
 
+    def test_render_nao_altera_titulo_com_palavra_de_autenticacao(self):
+        # 'basic configuration' e 'Bearer authentication' não são credenciais: o apply_args tem de voltar intacto
+        fields = {**test_tools.TASK, "System.Title": "Ajuste basic configuration e Bearer authentication"}
+        prep = self.srv.handle(call(12, "ado_prepare_create", project="Projeto Ágil", type="Task", fields=fields))
+        env = prep["result"]["structuredContent"]
+        self.assertEqual(env["reason_code"], "PREVIEW_READY", env)
+        self.assertEqual(env["data"]["apply_args"]["title"], "Ajuste basic configuration e Bearer authentication")
+        done = self.srv.handle(call(13, "ado_apply", **env["data"]["apply_args"]))["result"]["structuredContent"]
+        self.assertEqual(done["reason_code"], "APPLIED", done)
+
     def test_token_nunca_na_saida(self):
         out = self.srv.handle_line(json.dumps(call(11, "ado_status", check_remote=True)).encode())
         for form in test_tools.fakelib.leak_forms(self.e.tok):

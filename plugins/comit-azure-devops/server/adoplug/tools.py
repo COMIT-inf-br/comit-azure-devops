@@ -775,7 +775,8 @@ def render(ctx: Context, env: Mapping[str, Any]) -> Tuple[str, Dict[str, Any]]:
     """Texto JSON do envelope sem segredo em memória e o objeto correspondente."""
     try:
         text = json.dumps(env, ensure_ascii=False, default=_no_secret)
-        text = redact(text, _secrets(ctx), limit=10 ** 9)
+        # patterns=False: o AUTH_RE trocaria 'basic settings' num título e quebraria o ado_apply (PREVIEW_MISMATCH)
+        text = redact(text, _secrets(ctx), limit=10 ** 9, patterns=False)
         return text, json.loads(text)
     except (TypeError, ValueError):
         safe = envelope("failed", "INTERNAL_ERROR", {"error": "resposta não serializável"},
