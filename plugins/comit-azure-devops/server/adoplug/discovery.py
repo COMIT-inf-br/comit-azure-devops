@@ -163,6 +163,50 @@ def discover_org(client, org, project=None, all_types=False, measured_at=None, u
     return profile
 
 
+def merge_profiles(current, discovered):
+    """Junta uma descoberta ao perfil atual sem perder o que a descoberta não leu.
+
+    - Projetos, processos presentes e datas vêm da descoberta.
+    - Processo com `work_item_types = "discover"` na descoberta mantém os tipos do atual.
+    - Processo expandido na descoberta substitui os tipos; cada tipo mantém os
+      `suggested_fields` do atual quando a descoberta não traz esse campo.
+    - `usage` do atual prevalece (o `hint` é texto revisado à mão).
+
+    Use antes de `diff_profiles` e de gravar uma proposta.
+    """
+    if not current:
+        return dict(discovered)
+    merged = dict(discovered)
+    if current.get("usage"):
+        merged["usage"] = dict(current["usage"])
+    cur_procs = current.get("processes") or {}
+    procs = {}
+    for pid, proc in (discovered.get("processes") or {}).items():
+        proc = dict(proc)
+        old = cur_procs.get(pid) or {}
+        old_types = old.get("work_item_types")
+        new_types = proc.get("work_item_types")
+        if new_types == "discover" and isinstance(old_types, dict):
+            proc["work_item_types"] = old_types
+        elif isinstance(new_types, dict) and isinstance(old_types, dict):
+            types = {}
+            for tname, t in new_types.items():
+                t = dict(t)
+                prev = old_types.get(tname) or {}
+                if "suggested_fields" not in t and prev.get("suggested_fields"):
+                    t["suggested_fields"] = list(prev["suggested_fields"])
+                    fmap = dict(t.get("fields") or {})
+                    for ref in t["suggested_fields"]:
+                        if ref not in fmap and ref in (prev.get("fields") or {}):
+                            fmap[ref] = prev["fields"][ref]
+                    t["fields"] = dict(sorted(fmap.items()))
+                types[tname] = t
+            proc["work_item_types"] = types
+        procs[pid] = proc
+    merged["processes"] = procs
+    return merged
+
+
 def diff_profiles(current, discovered, ignore=DIFF_IGNORED):
     """Diferenças entre dois perfis: lista de `{"path", "current", "discovered"}`.
 

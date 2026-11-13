@@ -141,6 +141,41 @@ class DiffProfilesTest(unittest.TestCase):
         self.assertEqual(paths, [f"processes/{PROC}/work_item_types/Task/states#order"])
 
 
+class MergeProfilesTest(unittest.TestCase):
+    def setUp(self):
+        self.current = discovery.discover_org(FakeClient(), "ORG-EXEMPLO", project=PROJ, measured_at="2026-11-13")
+        self.current["source"] = "embedded"
+        self.current["usage"] = {"work_items": True, "hint": "revisado à mão"}
+        t = self.current["processes"][PROC]["work_item_types"]["Task"]
+        t["suggested_fields"] = ["Custom.Sugerido"]
+        t["fields"]["Custom.Sugerido"] = {"name": "Sugerido", "type": "string"}
+
+    def test_discover_keeps_expanded_types(self):
+        other = discovery.discover_org(FakeClient(), "ORG-EXEMPLO", measured_at="2026-12-01")
+        merged = discovery.merge_profiles(self.current, other)
+        self.assertEqual(merged["processes"][PROC]["work_item_types"],
+                         self.current["processes"][PROC]["work_item_types"])
+        self.assertEqual(merged["measured_at"], "2026-12-01")
+        self.assertEqual(merged["usage"]["hint"], "revisado à mão")
+        self.assertEqual(discovery.diff_profiles(self.current, merged), [])
+        self.assertEqual(profile_validate.validate_profile(merged), [])
+
+    def test_expanded_replaces_types_and_keeps_suggested(self):
+        fresh = discovery.discover_org(FakeClient(), "ORG-EXEMPLO", project=PROJ)
+        fresh["processes"][PROC]["work_item_types"]["Task"]["picklists"]["Custom.Equipe"].append("EQUIPE C")
+        merged = discovery.merge_profiles(self.current, fresh)
+        t = merged["processes"][PROC]["work_item_types"]["Task"]
+        self.assertEqual(t["suggested_fields"], ["Custom.Sugerido"])
+        self.assertIn("Custom.Sugerido", t["fields"])
+        paths = [d["path"] for d in discovery.diff_profiles(self.current, merged)]
+        self.assertEqual(paths, [f"processes/{PROC}/work_item_types/Task/picklists/Custom.Equipe"])
+        self.assertEqual(profile_validate.validate_profile(merged), [])
+
+    def test_without_current(self):
+        fresh = discovery.discover_org(FakeClient(), "ORG-EXEMPLO")
+        self.assertEqual(discovery.merge_profiles(None, fresh), fresh)
+
+
 class EmbeddedProfilesTest(unittest.TestCase):
     def test_embedded_profiles_validate(self):
         files = sorted(p for p in (PLUGIN / "profiles").glob("*.json") if not p.name.endswith(".schema.json"))
