@@ -58,8 +58,7 @@ class Blocking:
 
         `AAAA-MM-DD` sozinho vira meia-noite UTC e aparece como o dia anterior em UTC-3.
         """
-        local = dt.datetime.fromtimestamp(self.w.clock()).astimezone().tzinfo
-        return dt.datetime(d.year, d.month, d.day, tzinfo=local).isoformat()
+        return dt.datetime(d.year, d.month, d.day).astimezone().isoformat()  # fuso da própria data (horário de verão)
 
     def _load(self, org: str, item_id: Any) -> Tuple[int, Dict[str, Any], Dict[str, Any], str, Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
         n = check_id(item_id)

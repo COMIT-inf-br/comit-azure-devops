@@ -13,6 +13,7 @@ O padrão de impedimento vem do perfil da organização (`blocking` no tipo): os
 
 - Se a conversa indicar que uma atividade travou, sugira registrar o impedimento. Exemplos: acesso negado, chamado aberto, gate de QA reprovado, dúvida funcional sem resposta, documento que falta.
 - Sugira uma vez. Se a pessoa recusar, siga com o pedido original.
+- Se `blocking.policy.suggest_on_block` for `false` no `ado_type_schema`, não sugira. Registre só a pedido.
 - O impedimento não muda o estado do item. O card continua em andamento.
 
 ## Passos para registrar
