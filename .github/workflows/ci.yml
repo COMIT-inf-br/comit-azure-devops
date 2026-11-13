@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: "22"
       - name: Instalar o Claude Code
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.323
       - name: V1 manifests (plugin)
         run: claude plugin validate --strict plugins/comit-azure-devops
       - name: V1 manifests (marketplace)

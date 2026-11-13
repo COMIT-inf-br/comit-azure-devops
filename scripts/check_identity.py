@@ -18,11 +18,11 @@ GLOBAL = [
     ("email-mdb", re.compile(AT + r"mdb\.com\.br", re.I)),
     ("email-mdias", re.compile(AT + r"mdiasbranco", re.I)),
     ("email-comit", re.compile(AT + r"comit\.inf\.br", re.I)),
-    ("matricula", re.compile(r"\b(?:ter|mdb|zdr|jqk|fvx|sey)\d{5}\b", re.I)),
+    ("matricula", re.compile(r"\b[a-z]{3}\d{5}\b", re.I)),
     ("termo-interno", re.compile("|".join(
         ["data" + "-transformation", "padroes" + "_ado", "Cerv" + "ello", "mdb" + "cit"]), re.I)),
     # PAT formato antigo: 52 caracteres base32 (a-z2-7); formato atual: 84 caracteres com AZDO.
-    ("pat-84", re.compile(r"(?<![A-Za-z0-9])[A-Za-z0-9]{75}AZDO[A-Za-z0-9]{4}(?![A-Za-z0-9])")),
+    ("pat-84", re.compile(r"(?<![A-Za-z0-9])(?=[A-Za-z0-9]{84}(?![A-Za-z0-9]))[A-Za-z0-9]{75,76}AZDO[A-Za-z0-9]{4,5}(?![A-Za-z0-9])")),
     ("pat-52", re.compile(r"(?<![A-Za-z0-9])[a-z2-7]{52}(?![A-Za-z0-9])")),
 ]
 # "squad" só em skills e docs (os perfis citam nomes de projeto).
