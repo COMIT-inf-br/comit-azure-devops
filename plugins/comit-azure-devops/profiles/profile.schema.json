@@ -162,6 +162,60 @@
               "identity": {"const": true}
             }
           }
+        },
+        "blocking": {"$ref": "#/$defs/blocking"}
+      }
+    },
+    "blocking": {
+      "description": "Padrão de impedimento do tipo nesta org: campos e política. Opcional; sem ele, a org não tem padrão de impedimento mapeado.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fields"],
+      "properties": {
+        "fields": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["flag"],
+          "properties": {
+            "flag": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["field", "value_on", "value_off"],
+              "properties": {
+                "field": {"$ref": "#/$defs/field_ref"},
+                "value_on": {"$ref": "#/$defs/scalar"},
+                "value_off": {"$ref": "#/$defs/scalar"}
+              }
+            },
+            "responsible": {"$ref": "#/$defs/field_ref"},
+            "reason": {"$ref": "#/$defs/field_ref"},
+            "date": {"$ref": "#/$defs/field_ref"},
+            "forecast": {"$ref": "#/$defs/field_ref"}
+          }
+        },
+        "policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "responsible_default": {"enum": ["parent_assigned_to", "item_assigned_to", "ask"]},
+            "date_default": {"enum": ["today", "ask"]},
+            "forecast_days": {"type": "integer"},
+            "kinds": {
+              "type": "object",
+              "propertyNames": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{0,31}$"},
+              "additionalProperties": {"type": "string", "minLength": 1, "maxLength": 64}
+            },
+            "comment_templates": {
+              "type": "object",
+              "propertyNames": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{0,31}$"},
+              "additionalProperties": {"type": "string", "minLength": 1, "maxLength": 500}
+            },
+            "clear_on_unblock": {
+              "type": "array",
+              "items": {"enum": ["responsible", "reason", "date", "forecast"]}
+            },
+            "suggest_on_block": {"type": "boolean"}
+          }
         }
       }
     }

@@ -7,9 +7,11 @@ de conteúdo proibido:
 - e-mail, matrícula ou texto com cara de segredo em qualquer valor;
 - GUID fora das posições permitidas. Posições permitidas: `projects[].id`,
   `projects[].process`, chave de `processes` e o sufixo de `Custom.<guid>` em posição de
-  campo. Qualquer outro GUID pode ser de pessoa ou identidade e reprova o perfil;
+  campo (também nos campos do bloco `blocking`). Qualquer outro GUID pode ser de pessoa ou
+  identidade e reprova o perfil;
 - default ou picklist em campo de identidade;
-- referência quebrada (processo ou campo que o perfil não declara).
+- referência quebrada (processo ou campo que o perfil não declara);
+- bloco `blocking` incoerente (responsável sem identidade, flag fora da lista, prazo fora de 0 a 60).
 
 Uso: `validate_profile(perfil) -> [erros]`; lista vazia = válido.
 """
@@ -33,6 +35,9 @@ FORBIDDEN_KEYS = frozenset({
 # Contextos (último segmento estrutural) em que um valor é referência de campo.
 FIELD_LIST_KEYS = ("required_on_create", "suggested_fields", "fields")
 FIELD_MAP_KEYS = ("defaults", "picklists", "fields")
+# Papéis de campo do bloco `blocking`, além da flag.
+BLOCKING_ROLES = ("responsible", "reason", "date", "forecast")
+FORECAST_DAYS_MAX = 60
 _TYPES = {
     "string": lambda v: isinstance(v, str),
     "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
@@ -153,6 +158,9 @@ def _is_field_position(path, is_key):
         return isinstance(path[-1], int)
     if rest[0] == "required_by_rule":
         return rest[1:] in (["fields"], ["when"], ["conditions", "field"])
+    if rest[0] == "blocking":
+        return rest[1:] in (["fields", "flag", "field"],) or (
+            len(rest) == 3 and rest[1] == "fields" and rest[2] in BLOCKING_ROLES)
     return False
 
 
@@ -223,12 +231,45 @@ def _semantic(profile, errors):
             for ref in sorted(set(refs)):
                 if ref not in fmap:
                     errors.append(f"{base}: campo {ref} sem entrada em fields")
+            _semantic_blocking(t.get("blocking"), fmap, t.get("picklists") or {}, base, errors)
             for ref, meta in fmap.items():
                 if isinstance(meta, dict) and meta.get("identity"):
                     if ref in (t.get("defaults") or {}):
                         errors.append(f"{base}/defaults/{ref}: default em campo de identidade")
                     if ref in (t.get("picklists") or {}):
                         errors.append(f"{base}/picklists/{ref}: picklist em campo de identidade")
+
+
+def _semantic_blocking(block, fmap, picks, base, errors):
+    """Campos do impedimento declarados em `fields`, responsável de identidade e valores da flag na lista."""
+    if not isinstance(block, dict):
+        return
+    where = base + "/blocking"
+    bf = block.get("fields") if isinstance(block.get("fields"), dict) else {}
+    flag = bf.get("flag") if isinstance(bf.get("flag"), dict) else {}
+    refs = {"flag": flag.get("field")}
+    refs.update({r: bf.get(r) for r in BLOCKING_ROLES})
+    for role, ref in refs.items():
+        if isinstance(ref, str) and ref not in fmap:
+            errors.append(f"{where}/fields/{role}: campo {ref} sem entrada em fields")
+    resp = bf.get("responsible")
+    if isinstance(resp, str) and isinstance(fmap.get(resp), dict) and not fmap[resp].get("identity"):
+        errors.append(f"{where}/fields/responsible: campo {resp} não é de identidade")
+    values = picks.get(flag.get("field")) if isinstance(flag.get("field"), str) else None
+    for k in ("value_on", "value_off"):
+        if values and k in flag and str(flag[k]) not in {str(v) for v in values}:
+            errors.append(f"{where}/fields/flag/{k}: valor fora da lista do campo")
+    if "value_on" in flag and str(flag.get("value_on")) == str(flag.get("value_off")):
+        errors.append(f"{where}/fields/flag: value_on igual a value_off")
+    pol = block.get("policy") if isinstance(block.get("policy"), dict) else {}
+    days = pol.get("forecast_days")
+    if isinstance(days, int) and not isinstance(days, bool) and not 0 <= days <= FORECAST_DAYS_MAX:
+        errors.append(f"{where}/policy/forecast_days: use de 0 a {FORECAST_DAYS_MAX} dias")
+    for role in pol.get("clear_on_unblock") or []:
+        if role in BLOCKING_ROLES and not bf.get(role):
+            errors.append(f"{where}/policy/clear_on_unblock: papel {role} sem campo em fields")
+    if pol.get("comment_templates") and "default" not in pol["comment_templates"]:
+        errors.append(f"{where}/policy/comment_templates: falta o modelo default")
 
 
 def validate_profile(profile, schema=None):

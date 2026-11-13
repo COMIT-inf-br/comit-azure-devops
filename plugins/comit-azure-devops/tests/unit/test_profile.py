@@ -187,6 +187,82 @@ class RejectTest(unittest.TestCase):
         self.assertRejects(p, "host: formato")
 
 
+FLAG = "Microsoft.VSTS.CMMI.Blocked"
+FORECAST = "Custom.2b2b2b2b-0000-4000-8000-00000000002b"
+
+
+def with_blocking(p=None):
+    p = p or base()
+    t = task(p)
+    t["picklists"][FLAG] = ["No", "Yes"]
+    t["fields"].update({FLAG: {"name": "Blocked", "type": "string"},
+                        "Custom.Motivo": {"name": "Motivo", "type": "string"},
+                        FORECAST: {"name": "Previsão", "type": "dateTime"}})
+    t["blocking"] = {"fields": {"flag": {"field": FLAG, "value_on": "Yes", "value_off": "No"},
+                                "responsible": IDF, "reason": "Custom.Motivo", "forecast": FORECAST},
+                     "policy": {"responsible_default": "parent_assigned_to", "date_default": "today",
+                                "forecast_days": 2, "kinds": {"infra": "de infraestrutura"},
+                                "comment_templates": {"default": "Impedimento {tipo}: {motivo}. Com @{responsavel}."},
+                                "clear_on_unblock": [], "suggest_on_block": True}}
+    return p
+
+
+class BlockingTest(unittest.TestCase):
+    def assertRejects(self, p, fragment):
+        errors = pv.validate_profile(p)
+        self.assertTrue(any(fragment in e for e in errors), errors)
+
+    def test_valid_with_custom_guid_fields(self):
+        self.assertEqual(pv.validate_profile(with_blocking()), [])
+
+    def test_only_flag_is_valid(self):
+        p = with_blocking()
+        task(p)["blocking"] = {"fields": {"flag": {"field": FLAG, "value_on": "Yes", "value_off": "No"}}}
+        self.assertEqual(pv.validate_profile(p), [])
+
+    def test_guid_outside_blocking_fields(self):
+        p = with_blocking()
+        task(p)["blocking"]["policy"]["kinds"]["infra"] = "1a1a1a1a-0000-4000-8000-00000000001a"
+        self.assertRejects(p, "GUID fora das posições permitidas")
+
+    def test_semantics(self):
+        p = with_blocking()
+        task(p)["blocking"]["fields"]["date"] = "Custom.Faltando"
+        self.assertRejects(p, "Custom.Faltando sem entrada em fields")
+        p = with_blocking()
+        task(p)["blocking"]["fields"]["responsible"] = "Custom.Motivo"
+        self.assertRejects(p, "não é de identidade")
+        p = with_blocking()
+        task(p)["blocking"]["fields"]["flag"]["value_on"] = "Talvez"
+        self.assertRejects(p, "value_on: valor fora da lista")
+        p = with_blocking()
+        task(p)["blocking"]["policy"]["forecast_days"] = 90
+        self.assertRejects(p, "forecast_days")
+        p = with_blocking()
+        task(p)["blocking"]["policy"]["comment_templates"] = {"infra": "x"}
+        self.assertRejects(p, "falta o modelo default")
+        p = with_blocking()
+        task(p)["blocking"]["policy"]["clear_on_unblock"] = ["date"]
+        self.assertRejects(p, "papel date sem campo")
+
+    def test_schema(self):
+        p = with_blocking()
+        del task(p)["blocking"]["fields"]["flag"]
+        self.assertRejects(p, "flag: chave obrigatória ausente")
+        p = with_blocking()
+        task(p)["blocking"]["policy"]["responsible_default"] = "chefe"
+        self.assertRejects(p, "responsible_default: valor fora")
+        p = with_blocking()
+        task(p)["blocking"]["extra"] = 1
+        self.assertRejects(p, "blocking/extra: chave não permitida")
+
+    def test_embedded_mdb_cit_has_task_blocking(self):
+        prof = json.loads((PLUGIN / "profiles" / "MDB-CIT.json").read_text(encoding="utf-8"))
+        types = [t for proc in prof["processes"].values() if isinstance(proc["work_item_types"], dict)
+                 for t in proc["work_item_types"].values()]
+        self.assertTrue(any((t.get("blocking") or {}).get("fields", {}).get("flag") for t in types))
+
+
 class CliTest(unittest.TestCase):
     def run_cli(self, *args):
         return subprocess.run([sys.executable, str(REPO / "scripts" / "validate_profiles.py"), *args],

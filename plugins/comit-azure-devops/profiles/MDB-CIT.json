@@ -687,7 +687,39 @@
           "suggested_fields": [
             "Microsoft.VSTS.Scheduling.RemainingWork",
             "Custom.Tecnologia"
-          ]
+          ],
+          "blocking": {
+            "fields": {
+              "flag": {
+                "field": "Microsoft.VSTS.CMMI.Blocked",
+                "value_on": "Yes",
+                "value_off": "No"
+              },
+              "responsible": "Custom.82b61e94-5051-400e-a4a5-f6ad011e399a",
+              "reason": "Custom.Justificativadoimpedimento",
+              "date": "Custom.Datadoimpedimento",
+              "forecast": "Custom.c6d6c81c-cf87-4a77-8440-2bad54017a8b"
+            },
+            "policy": {
+              "responsible_default": "parent_assigned_to",
+              "date_default": "today",
+              "forecast_days": 2,
+              "kinds": {
+                "infra": "de infraestrutura",
+                "funcional": "funcional",
+                "qa": "de QA",
+                "documento": "de documentação",
+                "outro": "geral"
+              },
+              "comment_templates": {
+                "default": "Impedimento {tipo}: {motivo}. Aguardando: {esperado} — responsável: @{responsavel}. Previsão: {previsao}.",
+                "funcional": "Impedimento funcional, aguardando resolver com @{responsavel}.",
+                "unblock": "Impedimento resolvido: {resolucao}."
+              },
+              "clear_on_unblock": [],
+              "suggest_on_block": true
+            }
+          }
         },
         "User Story": {
           "reference_name": "AgilePrimeMDias.UserStory",
