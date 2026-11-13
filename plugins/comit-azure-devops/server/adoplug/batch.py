@@ -194,6 +194,9 @@ class Batch:
             info.update(action="associate", path=node["path"], start=(node["start"] or "")[:10] or None,
                         finish=(node["finish"] or "")[:10] or None,
                         note="A sprint já existe no projeto, fora do time: o plano só a associa, com as datas atuais.")
+            if sug and info["start"] and info["start"] != sug["start"]:
+                info["warning"] = (f"As datas atuais da sprint não seguem a última do time ({sug['based_on']}): "
+                                   f"o início sugerido seria {sug['start']}. Para mudar as datas, use o Azure DevOps.")
             if not assign:
                 info["action"] = "exists"
                 return [], info

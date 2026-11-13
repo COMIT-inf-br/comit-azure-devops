@@ -197,6 +197,7 @@ class CreateSprintTest(Base):
         sp = p["data"]["sprint"]
         self.assertEqual((sp["name"], sp["action"], sp["path"], sp["start"]), ("Sprint 4", "associate", S4, "2026-11-30"))
         self.assertEqual(p["data"]["apply_args"]["title"], "Sprint 4")
+        self.assertIn("2026-11-28", sp["warning"])  # Sprint 3 acaba em 27/11; o nó começa em 30/11
         self.assertEqual(self.e.ado.writes(), [])
         r = self.e.apply(p)
         self.assertEqual(r["reason_code"], "APPLIED", r)
