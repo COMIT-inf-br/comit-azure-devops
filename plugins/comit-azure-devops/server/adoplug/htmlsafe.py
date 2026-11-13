@@ -64,7 +64,10 @@ def text_to_html(text: str) -> str:
     for line in str(text or "").replace("\r\n", "\n").split("\n"):
         parts, pos = [], 0
         for m in URL_RE.finditer(line):
-            url = m.group(0).rstrip(".,;:)")
+            url = m.group(0).rstrip(".,;:")
+            # `)` final é pontuação só quando sobra sem `(` correspondente na URL.
+            while url.endswith(")") and url.count(")") > url.count("("):
+                url = url[:-1].rstrip(".,;:")
             end = m.start() + len(url)
             parts.append(escape(line[pos:m.start()]))
             parts.append(link(url))

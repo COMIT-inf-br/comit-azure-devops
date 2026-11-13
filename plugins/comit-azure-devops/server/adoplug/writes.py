@@ -20,6 +20,7 @@ import hashlib
 import os
 import re
 import stat
+import threading
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -61,14 +62,28 @@ def envelope(status: str, reason_code: Optional[str] = None, data: Optional[Mapp
             "next_action": next_action, "diagnostic": dict(diagnostic or {})}
 
 
-def _err(e: Exception, status: str = "failed") -> Dict[str, Any]:
-    code = getattr(e, "reason_code", "FAILED")
+# Códigos do az, do cofre, do auth e do http que pedem setup (skill de configuração), não nova tentativa.
+SETUP_CODES = frozenset({
+    "AUTH_REJECTED", "AZ_NOT_FOUND", "AZ_NOT_LOGGED_IN", "AZ_FAILED", "AZ_TIMEOUT", "INVALID_TENANT", "INVALID_MODE",
+    "ORG_NOT_CONFIGURED", "ORG_NOT_ALLOWED", "CONFIG_INVALID", "NP_LOCKED", "NP_SIGNIN", "NP_NO_ITEM",
+    "NP_AMBIGUOUS", "NP_FAILED", "PAT_NOT_FOUND", "NO_OS_VAULT",
+})
+
+
+def status_for(code: Optional[str], default: str = "failed") -> str:
+    return "needs_setup" if code in SETUP_CODES else default
+
+
+def error_envelope(e: Exception, status: str = "failed") -> Dict[str, Any]:
+    """Envelope de erro para `AdoApiError`, `NeedsDecision`, `PreviewError`, `HtmlError` e afins."""
+    code = getattr(e, "reason_code", None) or "FAILED"
     if isinstance(e, NeedsDecision):
         return envelope("needs_decision", code, {"options": e.options}, str(e))
     diag = getattr(e, "diagnostic", None) or {}
-    if code in ("AUTH_REJECTED", "NOT_LOGGED_IN", "AZ_NOT_FOUND", "ORG_NOT_CONFIGURED", "ORG_NOT_ALLOWED"):
-        status = "needs_setup"
-    return envelope(status, code, None, str(e), diag)
+    return envelope(status_for(code, status), code, None, str(e), diag)
+
+
+_err = error_envelope
 
 
 # --- conversão e comparação de valores ---------------------------------------------------
@@ -163,8 +178,16 @@ def _within(path: Path, base: Path) -> bool:
     return len(p) >= len(b) and p[:len(b)] == b
 
 
-def denied_dirs(home: Path, config_dir: Optional[Path] = None) -> List[Path]:
+def denied_dirs(home: Path, config_dir: Optional[Path] = None,
+                env: Optional[Mapping[str, str]] = None) -> List[Path]:
+    """Pastas de credencial. No Windows, `APPDATA`/`LOCALAPPDATA` podem estar fora do HOME."""
+    env = os.environ if env is None else env
     out = [home.joinpath(*d) for d in DENIED_HOME_DIRS]
+    for var, subs in (("APPDATA", (("Microsoft", "Credentials"), ("Microsoft", "Protect"))),
+                      ("LOCALAPPDATA", (("Microsoft", "Credentials"),))):
+        base = env.get(var)
+        if base and os.path.isabs(base):
+            out.extend(Path(base).joinpath(*s) for s in subs)
     out.append(config_dir or paths.config_dir(home=home))
     real = []
     for d in out:
@@ -205,7 +228,10 @@ def check_attachment_path(file_path: str, home: Optional[Path] = None,
         for d in denied_dirs(h, config_dir):
             if _within(cand, d):
                 raise AdoApiError("FILE_DENIED", f"Arquivo em pasta de credencial, recusado: {real}")
-    st = os.stat(real)
+    try:
+        st = os.stat(real)
+    except OSError:
+        raise AdoApiError("FILE_UNREADABLE", f"Não consegui ler o arquivo: {real}") from None
     if not stat.S_ISREG(st.st_mode):
         raise AdoApiError("FILE_NOT_REGULAR", f"Não é um arquivo comum: {real}")
     if st.st_size > ATTACH_MAX_BYTES:
@@ -217,8 +243,11 @@ def read_attachment(info: Mapping[str, Any], home: Optional[Path] = None,
                     config_dir: Optional[Path] = None) -> Tuple[Dict[str, Any], bytes]:
     """Confere o caminho de novo, lê os bytes e calcula o SHA-256 sobre eles."""
     cur = check_attachment_path(info["path"], home, config_dir)
-    with open(cur["path"], "rb") as f:
-        data = f.read(ATTACH_MAX_BYTES + 1)
+    try:
+        with open(cur["path"], "rb") as f:
+            data = f.read(ATTACH_MAX_BYTES + 1)
+    except OSError:
+        raise AdoApiError("FILE_UNREADABLE", f"Não consegui ler o arquivo: {cur['path']}") from None
     if len(data) > ATTACH_MAX_BYTES:
         raise AdoApiError("FILE_TOO_LARGE", "Arquivo acima do limite.")
     cur["size"] = len(data)
@@ -241,6 +270,8 @@ class Writes:
         self.clock = clock
         self.home = home
         self.config_dir = config_dir
+        # apply e reconcile da mesma sessão não correm em paralelo (o journal é lido e regravado).
+        self._lock = threading.RLock()
 
     # --- auxiliares -------------------------------------------------------------------
 
@@ -613,6 +644,10 @@ class Writes:
               file_name: Optional[str] = None) -> Dict[str, Any]:
         claims = {"operation": operation, "org": org, "target_id": target_id, "type": type, "title": title,
                   "file_name": file_name}
+        with self._lock:
+            return self._apply(preview_id, hash, claims)
+
+    def _apply(self, preview_id: str, hash: str, claims: Mapping[str, Any]) -> Dict[str, Any]:  # noqa: A002
         try:
             rec = self.store.check_apply(preview_id, hash, claims)
         except PreviewError as e:
@@ -634,7 +669,8 @@ class Writes:
         """Estado e envelope para um envio sem sucesso."""
         if kind == "not_sent":
             self.store.transition(rec, "prepared", note=diag.get("reason_code"))
-            return envelope("failed", diag.get("reason_code") or "NOT_SENT", {"preview_id": rec["preview_id"]},
+            return envelope(status_for(diag.get("reason_code")), diag.get("reason_code") or "NOT_SENT",
+                            {"preview_id": rec["preview_id"]},
                             f"O {what} não foi enviado. Resolva o motivo e chame ado_apply de novo.", diag)
         if kind == "refused" and resp.status in (401, 203, 429):
             # O ADO não processou o pedido: a prévia continua válida para nova tentativa.
@@ -818,6 +854,10 @@ class Writes:
 
     def reconcile(self, preview_id: str) -> Dict[str, Any]:
         """Procura o efeito de um envio incerto. Resultado em data.outcome: applied, not_applied, ambiguous, partial."""
+        with self._lock:
+            return self._reconcile(preview_id)
+
+    def _reconcile(self, preview_id: str) -> Dict[str, Any]:
         try:
             rec = self.store.load(preview_id)
         except PreviewError as e:

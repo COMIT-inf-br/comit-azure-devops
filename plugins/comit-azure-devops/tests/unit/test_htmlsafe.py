@@ -18,6 +18,11 @@ class MontagemTest(unittest.TestCase):
         self.assertEqual(h, 'a &lt;b&gt; &amp; &quot;c&quot;<br>veja '
                             '<a href="https://example.com/x?a=1&amp;b=2" target="_blank">https://example.com/x?a=1&amp;b=2</a>.')
 
+    def test_parentese_da_url_e_da_frase(self):
+        h = htmlsafe.text_to_html("ver https://e.com/a(b) e (https://e.com/c).")
+        self.assertIn('<a href="https://e.com/a(b)" target="_blank">https://e.com/a(b)</a> e (', h)
+        self.assertTrue(h.endswith('<a href="https://e.com/c" target="_blank">https://e.com/c</a>).'), h)
+
     def test_mencao(self):
         self.assertEqual(htmlsafe.mention(ID.upper(), "Ana <x>"),
                          f'<a href="#" data-vss-mention="version:2.0,{ID}">@Ana &lt;x&gt;</a>')

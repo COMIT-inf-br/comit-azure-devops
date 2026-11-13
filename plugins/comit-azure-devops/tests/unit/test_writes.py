@@ -281,7 +281,7 @@ class CommentTest(Base):
         self.assertEqual(env["status"], "ok", env)
         html = env["data"]["html"]
         self.assertTrue(html.startswith(f'<a href="#" data-vss-mention="version:2.0,{fake_ado.ANA}">@Ana Souza</a><br>'))
-        self.assertIn('target="_blank"', html)
+        self.assertIn('<a href="https://example.com/a(b)" target="_blank">', html)
         self.assertIn("@Ana Souza", env["data"]["text"])
         self.assertEqual(self.ado.writes(), [])  # comentário não tem validateOnly: nada vai no prepare
         res = self.apply(env)
@@ -369,6 +369,27 @@ class AttachTest(Base):
             env = self.keep(self.w.prepare_attach("OrgA", self.t, path))
             self.assertEqual((env["status"], env["reason_code"]), ("failed", code), path)
         self.assertEqual(self.ado.requests, [])
+
+    @unittest.skipIf(os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0), "permissão POSIX")
+    def test_arquivo_sem_permissao_de_leitura(self):
+        self.file.chmod(0)
+        self.addCleanup(self.file.chmod, 0o600)
+        env = self.keep(self.w.prepare_attach("OrgA", self.t, str(self.file)))
+        self.assertEqual((env["status"], env["reason_code"]), ("failed", "FILE_UNREADABLE"))
+
+    def test_appdata_do_ambiente(self):
+        from adoplug import writes
+        appdata = self.tmp / "roaming"
+        cred = appdata / "Microsoft" / "Credentials"
+        cred.mkdir(parents=True)
+        (cred / "x").write_text("x")
+        dirs = writes.denied_dirs(self.home, self.cfgdir, env={"APPDATA": str(appdata)})
+        self.assertIn(cred, dirs)
+        orig = writes.denied_dirs
+        writes.denied_dirs = lambda h, c=None, env=None: orig(h, c, {"APPDATA": str(appdata)})
+        self.addCleanup(setattr, writes, "denied_dirs", orig)
+        env = self.keep(self.w.prepare_attach("OrgA", self.t, str(cred / "x")))
+        self.assertEqual(env["reason_code"], "FILE_DENIED")
 
     def test_link_na_mesma_pasta_mostra_caminho_real(self):
         try:
@@ -474,6 +495,21 @@ class AmbiguidadeTest(Base):
         res = self.apply(env)
         self.assertEqual(res["data"]["outcome"], "applied", res)
         self.assertEqual(res["data"]["comment_id"], self.ado.comments[t][0]["id"])
+
+    def test_login_vencido_no_apply_pede_setup(self):
+        from adoplug.auth import AuthError
+        env = self.prep()
+        auth = self.http.auth
+
+        def boom(org):
+            raise AuthError("AZ_NOT_LOGGED_IN", "Rode az login.")
+        auth.get_credential = boom
+        res = self.apply(env)
+        self.assertEqual((res["status"], res["reason_code"]), ("needs_setup", "AZ_NOT_LOGGED_IN"))
+        self.assertEqual(self.store.load(env["data"]["preview_id"])["state"], "prepared")
+        self.assertEqual(self.ado.writes(), [])
+        del auth.get_credential
+        self.assertEqual(self.apply(env)["status"], "ok")
 
     def test_reconcile_direto(self):
         env = self.prep()
