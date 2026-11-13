@@ -77,6 +77,25 @@ class DiscoverOrgTest(unittest.TestCase):
                          ["1. Análise", "2. Desenvolvimento", "3. Testes"])
         self.assertTrue(t["fields"][IDF]["identity"])
 
+    def test_blocking_inferred_from_rule(self):
+        b = self.types["Task"]["blocking"]
+        self.assertEqual(b["fields"], {
+            "flag": {"field": "Microsoft.VSTS.CMMI.Blocked", "value_on": "Yes", "value_off": "No"},
+            "responsible": IDF, "forecast": "Custom.2b2b2b2b-0000-4000-8000-00000000002b",
+            "reason": "Custom.Justificativa"})
+        self.assertNotIn("policy", b)  # a política nunca é inferida
+        self.assertNotIn("blocking", self.types["User Story"])
+
+    def test_blocking_only_flag_without_rule(self):
+        from adoplug import rules
+        part = {"required_by_rule": [], "fields": {}, "picklists": {}}
+        tf = [{"referenceName": "Microsoft.VSTS.CMMI.Blocked", "allowedValues": ["No", "Yes"]}]
+        b = rules.infer_blocking(part, tf, {"Microsoft.VSTS.CMMI.Blocked": {"name": "Blocked", "type": "string"}})
+        self.assertEqual(b, {"fields": {"flag": {"field": "Microsoft.VSTS.CMMI.Blocked", "value_on": "Yes",
+                                                  "value_off": "No"}}})
+        self.assertIn("Microsoft.VSTS.CMMI.Blocked", part["fields"])
+        self.assertIsNone(rules.infer_blocking({"required_by_rule": []}, [], {}))
+
     def test_no_people_or_groups(self):
         text = json.dumps(self.profile, ensure_ascii=False)
         for bad in ("Pessoa Exemplo", "example.com", GROUP, "displayName", "descrição", "System.AssignedTo"):
@@ -169,6 +188,18 @@ class MergeProfilesTest(unittest.TestCase):
         self.assertIn("Custom.Sugerido", t["fields"])
         paths = [d["path"] for d in discovery.diff_profiles(self.current, merged)]
         self.assertEqual(paths, [f"processes/{PROC}/work_item_types/Task/picklists/Custom.Equipe"])
+        self.assertEqual(profile_validate.validate_profile(merged), [])
+
+    def test_keeps_blocking_policy(self):
+        t = self.current["processes"][PROC]["work_item_types"]["Task"]
+        t["blocking"]["policy"] = {"responsible_default": "ask", "forecast_days": 3}
+        fresh = discovery.discover_org(FakeClient(), "ORG-EXEMPLO", project=PROJ)
+        merged = discovery.merge_profiles(self.current, fresh)
+        mt = merged["processes"][PROC]["work_item_types"]["Task"]
+        self.assertEqual(mt["blocking"], t["blocking"])
+        del fresh["processes"][PROC]["work_item_types"]["Task"]["blocking"]
+        merged = discovery.merge_profiles(self.current, fresh)
+        self.assertEqual(merged["processes"][PROC]["work_item_types"]["Task"]["blocking"], t["blocking"])
         self.assertEqual(profile_validate.validate_profile(merged), [])
 
     def test_without_current(self):

@@ -105,6 +105,9 @@ def discover_types(client, host, process_id, project_id, field_meta, all_types=F
             f"{host}/_apis/work/processes/{process_id}/workItemTypes/"
             f"{quote(wit['referenceName'], safe='')}/rules?{API}"))
         part = rules.interpret_type(tfields, trules, field_meta)
+        block = rules.infer_blocking(part, tfields, field_meta)
+        if block:
+            part["blocking"] = block
         entry = {"reference_name": wit["referenceName"]}
         if category:
             entry["category"] = category
@@ -171,6 +174,7 @@ def merge_profiles(current, discovered):
     - Processo expandido na descoberta substitui os tipos; cada tipo mantém os
       `suggested_fields` do atual quando a descoberta não traz esse campo.
     - `usage` do atual prevalece (o `hint` é texto revisado à mão).
+    - O `blocking` do atual mantém a `policy`, e os `fields` quando a descoberta não os inferiu.
 
     Use antes de `diff_profiles` e de gravar uma proposta.
     """
@@ -200,11 +204,32 @@ def merge_profiles(current, discovered):
                         if ref not in fmap and ref in (prev.get("fields") or {}):
                             fmap[ref] = prev["fields"][ref]
                     t["fields"] = dict(sorted(fmap.items()))
+                _keep_blocking(t, prev)
                 types[tname] = t
             proc["work_item_types"] = types
         procs[pid] = proc
     merged["processes"] = procs
     return merged
+
+
+def _keep_blocking(t, prev):
+    """Preserva o padrão de impedimento revisado à mão: a política sempre, os campos se a descoberta não os inferiu."""
+    old = prev.get("blocking")
+    if not isinstance(old, dict):
+        return
+    new = dict(t.get("blocking") or {})
+    if not new.get("fields"):
+        new["fields"] = old.get("fields")
+    if old.get("policy"):
+        new["policy"] = old["policy"]
+    fmap = dict(t.get("fields") or {})
+    bf = new.get("fields") or {}
+    refs = [(bf.get("flag") or {}).get("field")] + [bf.get(r) for r in ("responsible", "reason", "date", "forecast")]
+    for ref in refs:
+        if ref and ref not in fmap and ref in (prev.get("fields") or {}):
+            fmap[ref] = prev["fields"][ref]
+    t["fields"] = dict(sorted(fmap.items()))
+    t["blocking"] = new
 
 
 def diff_profiles(current, discovered, ignore=DIFF_IGNORED):

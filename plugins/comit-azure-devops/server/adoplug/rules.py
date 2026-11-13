@@ -222,3 +222,87 @@ def invalid_picklist_values(type_profile, fields):
             if str(fields[ref]) not in allowed:
                 bad[ref] = fields[ref]
     return bad
+
+
+# --- padrão de impedimento (bloco `blocking` do perfil) ------------------------------------
+
+BLOCKED_FIELD = "Microsoft.VSTS.CMMI.Blocked"
+_FLAG_HINTS = ("block", "imped")
+_FORECAST_HINTS = ("previs", "forecast", "expected", "estimat", "desimped", "unblock", "resolu")
+_TEXT_ROLE_TYPES = ("string", "plainText", "html")
+
+
+def _looks_like_flag(ref, name):
+    text = (ref + " " + (name or "")).casefold()
+    return ref == BLOCKED_FIELD or any(h in text for h in _FLAG_HINTS)
+
+
+def _flag_off(value_on, values):
+    others = [v for v in values or [] if str(v) != str(value_on)]
+    if len(others) == 1:
+        return others[0]
+    return "No" if str(value_on) == "Yes" else None
+
+
+def infer_blocking(part, type_fields, field_meta):
+    """Infere o bloco `blocking` de um tipo já interpretado. Devolve o bloco ou None.
+
+    Usa a regra que exige campos quando a flag tem um valor (`when <flag>=<valor>`): o campo
+    de identidade vira o responsável, a data com nome de previsão vira a previsão, a outra
+    data vira a data e o texto vira o motivo. Papel com mais de um candidato fica de fora.
+    Sem essa regra, mapeia só a flag `Blocked`, se o tipo tiver o campo. Nunca infere política.
+    Acrescenta a `part["fields"]` (e à picklist) a flag que ainda não estiver lá.
+    """
+    fmap = part.setdefault("fields", {})
+    by_ref = {f["referenceName"]: f for f in type_fields}
+
+    def name_of(ref):
+        return (fmap.get(ref) or {}).get("name") or (field_meta.get(ref) or {}).get("name") or ref
+
+    def values_of(ref):
+        if ref in (part.get("picklists") or {}):
+            return part["picklists"][ref]
+        return [v for v in (by_ref.get(ref) or {}).get("allowedValues") or [] if isinstance(v, (str, int, float))]
+
+    block = None
+    for rule in part.get("required_by_rule") or []:
+        conds = rule.get("conditions") or []
+        if len(conds) != 1 or conds[0].get("type") != "when":
+            continue
+        flag, on = conds[0]["field"], conds[0]["value"]
+        if not _looks_like_flag(flag, name_of(flag)):
+            continue
+        off = _flag_off(on, values_of(flag))
+        if off is None:
+            continue
+        roles = {"responsible": [], "date": [], "forecast": [], "reason": []}
+        for ref in rule["fields"]:
+            meta = fmap.get(ref) or {}
+            ftype = meta.get("type") or (field_meta.get(ref) or {}).get("type")
+            if meta.get("identity") or (field_meta.get(ref) or {}).get("isIdentity"):
+                roles["responsible"].append(ref)
+            elif ftype == "dateTime":
+                hint = any(h in (ref + " " + name_of(ref)).casefold() for h in _FORECAST_HINTS)
+                roles["forecast" if hint else "date"].append(ref)
+            elif ftype in _TEXT_ROLE_TYPES:
+                roles["reason"].append(ref)
+        block = {"fields": {"flag": {"field": flag, "value_on": on, "value_off": off}}}
+        for role, refs in roles.items():
+            if len(refs) == 1:
+                block["fields"][role] = refs[0]
+        break
+    if block is None and BLOCKED_FIELD in by_ref:
+        values = values_of(BLOCKED_FIELD)
+        if not values or {"Yes", "No"} <= {str(v) for v in values}:
+            block = {"fields": {"flag": {"field": BLOCKED_FIELD, "value_on": "Yes", "value_off": "No"}}}
+    if block is None:
+        return None
+    flag = block["fields"]["flag"]["field"]
+    if flag not in fmap:
+        meta = field_meta.get(flag) or {}
+        fmap[flag] = {"name": name_of(flag), "type": meta.get("type") or "string"}
+        part["fields"] = dict(sorted(fmap.items()))
+    values = values_of(flag)
+    if values and flag not in (part.get("picklists") or {}):
+        part.setdefault("picklists", {})[flag] = list(values)
+    return block
