@@ -1,0 +1,15 @@
+{
+  "name": "comit-azure-devops",
+  "description": "Plugins da COMIT para Azure DevOps.",
+  "owner": {
+    "name": "COMIT",
+    "url": "https://github.com/COMIT-inf-br"
+  },
+  "plugins": [
+    {
+      "name": "comit-azure-devops",
+      "source": "./plugins/comit-azure-devops",
+      "description": "Operações de work items do Azure DevOps em linguagem natural."
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "comit-azure-devops",
+  "version": "0.0.1",
+  "description": "Operações de work items do Azure DevOps em linguagem natural, com login pelo Azure CLI.",
+  "author": {
+    "name": "COMIT",
+    "url": "https://github.com/COMIT-inf-br"
+  },
+  "homepage": "https://github.com/COMIT-inf-br/comit-azure-devops",
+  "repository": "https://github.com/COMIT-inf-br/comit-azure-devops",
+  "keywords": ["azure-devops", "work-items", "mcp"]
+}
