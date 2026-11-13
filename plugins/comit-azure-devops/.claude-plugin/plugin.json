@@ -1,6 +1,6 @@
 {
   "name": "comit-azure-devops",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Operações de work items do Azure DevOps em linguagem natural, com login pelo Azure CLI.",
   "author": {
     "name": "COMIT",
