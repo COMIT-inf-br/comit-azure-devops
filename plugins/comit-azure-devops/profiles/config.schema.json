@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "comit-azure-devops/config.schema.json",
+  "title": "Config local do plugin",
+  "description": "config.json da pasta local da pessoa (fora do repositório). Nunca guarda segredo: o PAT entra só como referência em pat_ref. O servidor recusa chaves pat, token, password, secret e senha.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "default_org": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,48}[A-Za-z0-9])?$"},
+    "az_path": {"type": ["string", "null"], "description": "Caminho absoluto do Azure CLI. Vazio = procurar."},
+    "orgs": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,48}[A-Za-z0-9])?$"},
+      "additionalProperties": {"$ref": "#/$defs/org"}
+    }
+  },
+  "$defs": {
+    "org": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auth": {"enum": ["az", "pat"]},
+        "tenant": {"type": ["string", "null"]},
+        "pat_ref": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "nordpass_title": {"type": ["string", "null"]},
+            "nordpass_folder": {"type": ["string", "null"]},
+            "os_service": {"type": "string"},
+            "os_account": {"type": "string"}
+          }
+        },
+        "default_project": {"type": ["string", "null"]},
+        "me": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {"uniqueName": {"type": "string"}}
+        },
+        "defaults": {
+          "type": "object",
+          "description": "Por GUID de projeto.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "team": {"type": "string"},
+              "area_path": {"type": "string"},
+              "fields": {"type": "object"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
