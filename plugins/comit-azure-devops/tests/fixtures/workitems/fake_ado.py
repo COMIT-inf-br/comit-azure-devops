@@ -138,7 +138,10 @@ class FakeAdo:
                 if fault == "drop_before":
                     self.close_connection = True
                     return
-                status, data = outer.dispatch(self.command, u.path, query, body, req)
+                if fault == "400_before":
+                    status, data = 400, {"message": "Recusado pelo teste.", "typeKey": "TestException"}
+                else:
+                    status, data = outer.dispatch(self.command, u.path, query, body, req)
                 if fault == "drop_after":
                     self.close_connection = True
                     return
