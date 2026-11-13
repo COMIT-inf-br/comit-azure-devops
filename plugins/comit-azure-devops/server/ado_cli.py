@@ -143,7 +143,7 @@ def _use_pat(ctx: tools.Context, name: str, out: TextIO) -> None:
 
 
 def cmd_pat_set(ctx: tools.Context, args: argparse.Namespace, out: TextIO,
-                getpass_fn: Callable[[str], str] = getpass.getpass, is_tty: Callable[[], bool] = sys.stdin.isatty,
+                getpass_fn: Callable[[str], str] = getpass.getpass, is_tty: Callable[[], bool] = lambda: bool(sys.stdin and sys.stdin.isatty()),
                 **_: Any) -> int:
     name = _name(ctx, args.org)
     if args.nordpass_title:

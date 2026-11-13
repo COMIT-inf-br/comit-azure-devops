@@ -146,7 +146,7 @@ class PatTest(CliBase):
 
     def test_pat_set_org_fora_da_config(self):
         rc = self.run_cli("pat-set", "--org", "OrgNova", pat=self.pat)
-        # o cofre grava; a conferência recusa a org (fora da allowlist do http) e o modo não muda
+        # o cofre grava; o ADO falso só conhece OrgA, então a conferência falha e o modo não muda
         self.assertEqual(rc, 1)
         self.assertIn("gravado=sim", self.text())
         self.assertNotIn("OrgNova", self.cfg()["orgs"])
