@@ -62,6 +62,20 @@ class ConfigFileTest(unittest.TestCase):
         config.save_config(config.default_config(), self.path)
         self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), 0o600)
 
+    def test_pat_ref_recusa_servico_e_conta_alheios(self):
+        for ref in ({"os_service": "outro"}, {"os_account": "OutraOrg"}):
+            cfg = {**config.default_config(), "orgs": {"OrgA": {"pat_ref": ref}}}
+            with self.subTest(ref=ref):
+                with self.assertRaises(ConfigError) as cm:
+                    config.validate_config(cfg)
+                self.assertEqual(cm.exception.reason_code, "CONFIG_INVALID")
+                self.path.parent.mkdir(parents=True, exist_ok=True)
+                self.path.write_text(json.dumps(cfg), encoding="utf-8")
+                with self.assertRaises(ConfigError):
+                    config.load_config(self.path)
+        ok = {**config.default_config(), "orgs": {"OrgA": {"pat_ref": {"os_account": "orga"}}}}
+        config.validate_config(ok)
+
     def test_recusa_chave_de_segredo(self):
         for bad in ({"pat": "x"}, {"orgs": {"OrgA": {"token": "x"}}},
                     {"orgs": {"OrgA": {"pat_ref": {"password": "x"}}}}, {"x": [{"Secret": 1}]}):

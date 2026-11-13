@@ -353,6 +353,18 @@ class SetupTest(unittest.TestCase):
         self.assertEqual(entry["pat_ref"]["nordpass_folder"], "Trabalho")
         self.assertEqual(entry["pat_ref"]["os_service"], "comit-azure-devops")
 
+    def test_pat_ref_so_aceita_servico_fixo_e_conta_da_org(self):
+        e = Env(self, configured=False)
+        for ref in ({"os_service": "outro-app"}, {"os_account": "OutraOrg"},
+                    {"os_service": "comit-azure-devops", "os_account": "x"}):
+            for confirm in (False, True):
+                env = e.call("ado_setup_org", org="OrgA", auth="pat", confirm=confirm, pat_ref=ref)
+                self.assertEqual((env["status"], env["reason_code"]), ("needs_setup", "CONFIG_INVALID"), ref)
+        self.assertFalse(cfgmod.paths.config_file(e.cdir).exists())
+        env = e.call("ado_setup_org", org="OrgA", auth="pat", confirm=True,
+                     pat_ref={"os_service": "comit-azure-devops", "os_account": "orga"})
+        self.assertEqual(env["status"], "ok")
+
     def test_segredo_na_config_e_recusado(self):
         e = Env(self, configured=False)
         env = e.call("ado_setup_org", org="OrgA", confirm=True, pat_ref={"token": "x"})

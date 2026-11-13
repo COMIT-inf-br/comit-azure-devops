@@ -367,6 +367,7 @@ def t_setup_org(ctx: Context, a: Dict[str, Any]) -> Dict[str, Any]:
     if a.get("auth"):
         fields["auth"] = a["auth"]
     if a.get("pat_ref"):
+        cfgmod.validate_pat_ref(name, a["pat_ref"])
         fields["pat_ref"] = a["pat_ref"]
     data = {"org": name, "tenant": tenant, "already_configured": bool(known), "profile": psrc,
             "would_save": {k: v for k, v in fields.items()}, **_url_parts(raw)}

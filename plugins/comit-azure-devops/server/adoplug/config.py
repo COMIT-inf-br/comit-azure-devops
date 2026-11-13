@@ -113,13 +113,30 @@ def load_config(path: Optional[Path] = None) -> Dict[str, Any]:
     if not isinstance(cfg, dict):
         raise ConfigError("CONFIG_INVALID", "config.json precisa ser um objeto.")
     _scan_forbidden(cfg)
+    for name, entry in (cfg.get("orgs") or {}).items():
+        if isinstance(entry, dict):
+            validate_pat_ref(name, entry.get("pat_ref"))
     return _merge_defaults(cfg)
+
+
+def validate_pat_ref(org: str, ref: Any) -> None:
+    """O serviço do cofre é fixo e a conta é a própria org: a config não aponta para outro item do cofre."""
+    if ref is None:
+        return
+    if not isinstance(ref, dict):
+        raise ConfigError("CONFIG_INVALID", f"pat_ref da org {org} precisa ser um objeto.")
+    service, account = ref.get("os_service"), ref.get("os_account")
+    if service is not None and service != DEFAULT_OS_SERVICE:
+        raise ConfigError("CONFIG_INVALID", f"pat_ref.os_service da org {org} só pode ser {DEFAULT_OS_SERVICE}.")
+    if account is not None and (not isinstance(account, str) or account.casefold() != org.casefold()):
+        raise ConfigError("CONFIG_INVALID", f"pat_ref.os_account da org {org} precisa ser o nome da org.")
 
 
 def validate_config(cfg: Dict[str, Any]) -> None:
     _scan_forbidden(cfg)
     for name, entry in (cfg.get("orgs") or {}).items():
         validate_org(name)
+        validate_pat_ref(name, (entry or {}).get("pat_ref"))
         if entry.get("auth", "az") not in AUTH_MODES:
             raise ConfigError("CONFIG_INVALID", f"auth da org {name} precisa ser az ou pat.")
     d = cfg.get("default_org")
@@ -167,6 +184,7 @@ def set_org(cfg: Dict[str, Any], org: str, **fields: Any) -> Dict[str, Any]:
     entry = orgs.get(name) or default_org_entry(name)
     for k, v in fields.items():
         if k == "pat_ref" and isinstance(v, dict):
+            validate_pat_ref(name, v)
             entry["pat_ref"] = {**entry.get("pat_ref", {}), **v}
         else:
             entry[k] = v

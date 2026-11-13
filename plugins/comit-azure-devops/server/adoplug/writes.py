@@ -46,11 +46,21 @@ TAGS = "System.Tags"
 STATE = "System.State"
 # Pastas de credencial recusadas em qualquer posição do caminho.
 DENIED_DIR_NAMES = frozenset({".ssh", ".aws", ".azure", ".gnupg", ".kube", ".docker", ".password-store",
-                              ".claude", ".codex"})
-DENIED_FILE_NAMES = frozenset({".netrc", "_netrc", ".git-credentials", ".pgpass", ".npmrc", ".pypirc"})
+                              ".claude", ".codex", ".snowflake", ".mozilla"})
+DENIED_FILE_NAMES = frozenset({".netrc", "_netrc", ".git-credentials", ".pgpass", ".npmrc", ".pypirc",
+                               ".vault-token", ".claude.json", ".env"})
+# Chaves e certificados privados. Recusa também `*.key` do Keynote (macOS): decisão de segurança.
+DENIED_SUFFIXES = (".pem", ".key", ".p8", ".pfx", ".p12")
+DENIED_NAME_PREFIXES = (".env.",)
 # Pastas de credencial relativas ao HOME.
 DENIED_HOME_DIRS = (
-    (".config", "gh"), (".config", "gcloud"), (".local", "share", "keyrings"), ("Library", "Keychains"),
+    (".config", "gh"), (".config", "gcloud"), (".config", "google-chrome"), (".config", "chromium"),
+    (".config", "BraveSoftware"), (".config", "microsoft-edge"),
+    ("Library", "Application Support", "Google", "Chrome"), ("Library", "Application Support", "Microsoft Edge"),
+    ("Library", "Application Support", "BraveSoftware"), ("Library", "Application Support", "Firefox"),
+    ("Library", "Application Support", "Arc"), ("Library", "Safari"),
+    ("AppData", "Local", "Google", "Chrome"), ("AppData", "Local", "Microsoft", "Edge"),
+    ("AppData", "Local", "BraveSoftware"), ("AppData", "Roaming", "Mozilla"), (".local", "share", "keyrings"), ("Library", "Keychains"),
     ("AppData", "Roaming", "Microsoft", "Credentials"), ("AppData", "Local", "Microsoft", "Credentials"),
     ("AppData", "Roaming", "Microsoft", "Protect"),
 )
@@ -223,7 +233,9 @@ def check_attachment_path(file_path: str, home: Optional[Path] = None,
     h = Path(home) if home is not None else Path.home()
     for cand in (given, real):
         names = {x.casefold() for x in cand.parts[:-1]}
-        if names & DENIED_DIR_NAMES or cand.name.casefold() in DENIED_FILE_NAMES:
+        low = cand.name.casefold()
+        if (names & DENIED_DIR_NAMES or low in DENIED_FILE_NAMES or low.endswith(DENIED_SUFFIXES)
+                or low.startswith(DENIED_NAME_PREFIXES)):
             raise AdoApiError("FILE_DENIED", f"Arquivo em pasta de credencial, recusado: {real}")
         for d in denied_dirs(h, config_dir):
             if _within(cand, d):

@@ -377,6 +377,28 @@ class AttachTest(Base):
         env = self.keep(self.w.prepare_attach("OrgA", self.t, str(self.file)))
         self.assertEqual((env["status"], env["reason_code"]), ("failed", "FILE_UNREADABLE"))
 
+    def test_segredos_por_nome_extensao_e_perfil_de_navegador(self):
+        browser = self.home / "Library" / "Application Support" / "Google" / "Chrome" / "Default"
+        browser.mkdir(parents=True)
+        (browser / "Cookies").write_text("x")
+        for d in (".snowflake", ".kube", ".docker", ".gnupg", ".mozilla"):
+            (self.home / d).mkdir()
+            (self.home / d / "c").write_text("x")
+        (self.home / ".claude.json").write_text("x")
+        names = [".env", ".env.local", "chave.pem", "a.KEY", "k.p8", "c.pfx", ".vault-token"]
+        for n in names:
+            (self.dir / n).write_text("x")
+        targets = [browser / "Cookies", self.home / ".claude.json", *(self.home / d / "c" for d in
+                   (".snowflake", ".kube", ".docker", ".gnupg", ".mozilla")), *(self.dir / n for n in names)]
+        for p in targets:
+            env = self.keep(self.w.prepare_attach("OrgA", self.t, str(p)))
+            self.assertEqual((env["status"], env["reason_code"]), ("failed", "FILE_DENIED"), str(p))
+
+    def test_arquivo_comum_nao_e_recusado(self):
+        (self.dir / "ambiente.pdf").write_text("x")
+        env = self.keep(self.w.prepare_attach("OrgA", self.t, str(self.dir / "ambiente.pdf")))
+        self.assertEqual(env["status"], "ok")
+
     def test_appdata_do_ambiente(self):
         from adoplug import writes
         appdata = self.tmp / "roaming"
