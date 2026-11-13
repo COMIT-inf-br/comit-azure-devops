@@ -1,0 +1,30 @@
+# Não testado em CI real: o workflow nunca rodou (repositório sem remote).
+name: ci
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Instalar o Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+      - name: V1 manifests (plugin)
+        run: claude plugin validate --strict plugins/comit-azure-devops
+      - name: V1 manifests (marketplace)
+        run: claude plugin validate --strict .
+  identity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: V7 sem identidade nem segredo
+        run: python scripts/check_identity.py

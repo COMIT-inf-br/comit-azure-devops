@@ -1,0 +1,2 @@
+# GUIDs permitidos fora de plugins/*/profiles/ (um por linha, minúsculos).
+# Comentário começa com #. O S2 acrescenta aqui o resource id do Azure DevOps.
