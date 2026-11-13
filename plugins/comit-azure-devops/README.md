@@ -14,12 +14,13 @@ Plugin do Claude Code e do Claude Cowork para operar work items do Azure DevOps 
 | Skill | Faz |
 |---|---|
 | `azure-devops` | Roteia o pedido para a skill certa |
-| `ado-configurar` | Conduz login, organização nova, perfil e PAT de contingência |
+| `ado-configurar` | Conduz a escolha do login (Azure CLI ou PAT), organização nova e perfil |
 | `ado-consultar` | Lê, lista e filtra work items; resume os comentários de um item |
 | `ado-sprint` | Backlog do time, montagem de sprint, carga por pessoa, nova sprint, virada de sprint e exclusão |
 | `ado-daily` | Transforma a transcrição ou a ata de uma reunião em um comentário por item |
 | `ado-criar` | Cria task, user story, bug, feature e épico |
 | `ado-atualizar` | Muda estado, campos, pai e links |
+| `ado-impedimento` | Registra e encerra o impedimento de um item, pelo padrão do perfil da organização |
 | `ado-comentar` | Comenta e menciona pessoas, também em vários itens de uma vez |
 | `ado-anexar` | Anexa arquivos e evidências |
 
@@ -34,9 +35,14 @@ São as únicas instalações. Veja [`docs/setup.md`](docs/setup.md).
 
 ## Autenticação
 
-O padrão é o `az login` da própria pessoa. Não precisa de PAT.
+Na primeira configuração, você escolhe:
 
-O PAT é contingência por organização, para organização que não aceita o login do Azure CLI. Você grava o PAT no seu terminal, com entrada oculta. O servidor lê o PAT do NordPass ou do cofre do sistema. Nunca de variável de ambiente, de arquivo ou do chat. Veja [`docs/pat.md`](docs/pat.md).
+1. Login pelo Azure CLI, sem PAT (recomendado). O acesso se renova sozinho enquanto você usa.
+2. PAT, com validade fixa. Para quem precisa de um acesso que não peça login, ou para organização sem Microsoft Entra.
+
+A comparação, com as fontes da Microsoft, está em [`docs/setup.md`](docs/setup.md#escolha-do-login).
+
+No PAT, você grava o token no seu terminal, com entrada oculta. O servidor lê o PAT do NordPass ou do cofre do sistema. Nunca de variável de ambiente, de arquivo ou do chat. Veja [`docs/pat.md`](docs/pat.md).
 
 ## Perfil de organização
 
@@ -129,17 +135,28 @@ Não ponha `ado_apply` em `allow`. Não use "permitir sempre" nem o modo `bypass
 
 O prompt de permissão de `ado_apply` é a trava dura contra escrita indevida. O `preview_id` e o `hash` da prévia não provam o seu OK: o modelo recebe os dois no `ado_prepare_*` e os repassa no `ado_apply`. Sem o prompt de permissão, só o OK pedido no chat segura a escrita.
 
-As ferramentas `ado_prepare_*` não gravam nada no Azure DevOps. `ado_prepare_create`, `ado_prepare_update`, `ado_prepare_move_to_sprint` e `ado_prepare_sprint_rollover` enviam a validação ao servidor com `validateOnly`, que não grava. Elas podem ficar no prompt padrão.
+As ferramentas `ado_prepare_*` não gravam nada no Azure DevOps. `ado_prepare_create`, `ado_prepare_update`, `ado_prepare_move_to_sprint`, `ado_prepare_sprint_rollover`, `ado_prepare_block` e `ado_prepare_unblock` enviam a validação ao servidor com `validateOnly`, que não grava. Elas podem ficar no prompt padrão.
 
 ## Operações em lote
 
-Mover para a sprint, criar sprint, virar a sprint, excluir com filhos e o lote de comentários têm uma prévia só, com um hash. O `ado_apply` envia um pedido por item, na ordem da prévia.
+Mover para a sprint, criar sprint, virar a sprint, excluir com filhos, o lote de comentários e o impedimento têm uma prévia só, com um hash. O `ado_apply` envia um pedido por item, na ordem da prévia.
 
 - Se parte do lote ficar pendente (sem login, limite de taxa, rede), chame `ado_apply` de novo. Ele envia só os passos pendentes e não repete o que já foi gravado.
 - Item que mudou depois da prévia é recusado pelo `test /rev` e pede uma prévia nova.
 - Sem permissão (HTTP 403), o passo volta `FORBIDDEN` com a permissão que falta.
 - Criar iteração e excluir não têm `validateOnly` no Azure DevOps. A prévia e o OK são a única trava.
 - A exclusão vai para a lixeira do projeto e pode ser restaurada lá. O plugin nunca exclui em definitivo.
+
+## Impedimento
+
+Se o perfil da organização define um padrão de impedimento (`blocking`), o plugin registra o impedimento com `ado_prepare_block`:
+
+- Uma prévia só: os campos do impedimento e o comentário obrigatório.
+- O responsável, a data e a previsão vêm da política do perfil. A prévia mostra os 4 valores para você confirmar ou trocar.
+- O estado do item não muda.
+- `ado_prepare_unblock` desliga a flag e grava o comentário de resolução.
+
+Sem padrão no perfil, o plugin avisa e oferece mapear o padrão pela descoberta. Veja [`docs/perfil.md`](docs/perfil.md#padrão-de-impedimento).
 
 ## Planejado
 
