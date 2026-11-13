@@ -1,0 +1,1 @@
+{"status": "ok", "reason_code": null, "data": {"count": 1, "iterations": [{"id": "s2", "name": "Sprint 2", "path": "P\\Sprint 2", "start": null, "finish": null, "timeframe": "current"}]}, "next_action": null, "diagnostic": {}}

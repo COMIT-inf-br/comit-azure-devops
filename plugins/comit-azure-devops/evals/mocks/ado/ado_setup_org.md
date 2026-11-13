@@ -1,0 +1,1 @@
+{"status": "needs_decision", "reason_code": "CONFIRM_REQUIRED", "data": {"org": "OrgA", "tenant": "0e0e0e0e-0000-4000-8000-00000000000e", "already_configured": false, "profile": "absent", "would_save": {"tenant": "0e0e0e0e-0000-4000-8000-00000000000e"}}, "next_action": "Mostre à pessoa e chame de novo com confirm=true depois do sim.", "diagnostic": {}}

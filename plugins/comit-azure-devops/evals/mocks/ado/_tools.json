@@ -1,0 +1,891 @@
+{
+ "tools": [
+  {
+   "name": "ado_status",
+   "title": "Status do Azure DevOps",
+   "description": "Diagnostica o setup: runtime, Azure CLI, login, organizações configuradas, perfil e pendências (pending_setup). Chame antes de qualquer operação. Sem rede por padrão.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "check_remote": {
+      "type": "boolean",
+      "description": "true faz um GET de identidade na org."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Status do Azure DevOps",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_setup_org",
+   "title": "Configurar organização",
+   "description": "Normaliza a organização (nome ou URL de item/projeto), descobre o tenant por GET anônimo e diz se há perfil. Só grava na config local com confirm=true. auth=pat e pat_ref registram a referência do PAT de contingência (nunca o valor).",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização ou URL dev.azure.com/<org>/..."
+     },
+     "auth": {
+      "enum": [
+       "az",
+       "pat"
+      ]
+     },
+     "pat_ref": {
+      "type": "object",
+      "properties": {
+       "nordpass_title": {
+        "type": [
+         "string",
+         "null"
+        ]
+       },
+       "nordpass_folder": {
+        "type": [
+         "string",
+         "null"
+        ]
+       },
+       "os_service": {
+        "type": "string"
+       },
+       "os_account": {
+        "type": "string"
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "confirm": {
+      "type": "boolean",
+      "description": "true só depois do sim explícito da pessoa. Sem ele, nada é gravado."
+     }
+    },
+    "required": [
+     "org"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Configurar organização",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_auth_login",
+   "title": "Login do Azure CLI",
+   "description": "Inicia az login no host (navegador da máquina) ou com código de dispositivo. Não bloqueia: devolve o estado. Chame de novo para ver o andamento.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "mode": {
+      "enum": [
+       "browser",
+       "device_code"
+      ]
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Login do Azure CLI",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_whoami",
+   "title": "Identidade autenticada",
+   "description": "Devolve displayName, uniqueName e id da identidade autenticada na org.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Identidade autenticada",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_list_projects",
+   "title": "Listar projetos",
+   "description": "Lista id, nome e processo dos projetos da organização.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Listar projetos",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_list_teams",
+   "title": "Listar teams",
+   "description": "Lista os teams de um projeto.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Listar teams",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_iterations",
+   "title": "Listar iterações",
+   "description": "Lista as iterações (sprints) de um team, com início e fim.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team."
+     },
+     "timeframe": {
+      "enum": [
+       "current",
+       "future",
+       "past",
+       "all"
+      ]
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Listar iterações",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_get",
+   "title": "Ler work item",
+   "description": "Lê um work item: campos, relações, parent, filhos, URL web, estado e categoria.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "expand": {
+      "enum": [
+       "none",
+       "relations",
+       "all"
+      ]
+     }
+    },
+    "required": [
+     "id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Ler work item",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_query",
+   "title": "Consultar work items",
+   "description": "Lista work items por filtros (assigned_to_me, type, state_category, parent) ou por WIQL livre. state_category: Proposed, InProgress, Resolved, Completed, Removed ou open. Devolve ids e campos.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "wiql": {
+      "type": "string"
+     },
+     "assigned_to_me": {
+      "type": "boolean"
+     },
+     "type": {
+      "type": "string"
+     },
+     "types": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "state_category": {
+      "type": "string"
+     },
+     "parent": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "top": {
+      "type": "integer",
+      "description": "Máximo de itens (1 a 200, padrão 50)."
+     },
+     "fields": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "referenceName dos campos a devolver. Omita para o conjunto padrão."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Consultar work items",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_children",
+   "title": "Filhos de um work item",
+   "description": "Lista os filhos (Hierarchy-Forward) com tipo, estado e título.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "fields": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "referenceName dos campos a devolver. Omita para o conjunto padrão."
+     }
+    },
+    "required": [
+     "id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Filhos de um work item",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_comments",
+   "title": "Ler comentários",
+   "description": "Lista os comentários de um work item, em HTML e em texto.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "limit": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Ler comentários",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_resolve_identity",
+   "title": "Resolver pessoa",
+   "description": "Busca candidatos {displayName, uniqueName, id} por nome ou e-mail. Com team, busca nos membros. Só em memória.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string"
+     },
+     "text": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "text"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Resolver pessoa",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_type_schema",
+   "title": "Esquema de um tipo",
+   "description": "Obrigatórios na criação, regras condicionais, listas de valores, padrões e estados por categoria de um tipo. Lê o perfil; sem perfil, faz a descoberta (só GET) sem gravar.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "type": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "type"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Esquema de um tipo",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_discover_org",
+   "title": "Descobrir perfil da organização",
+   "description": "Lê processos, tipos, obrigatórios, regras e estados do projeto (só GET) e propõe um perfil, com a diferença contra o perfil atual. Não grava: use ado_profile_save com o proposal_id.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Descobrir perfil da organização",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_profile_save",
+   "title": "Gravar perfil descoberto",
+   "description": "Grava a proposta de ado_discover_org como perfil aprendido, na config local (nunca no plugin).",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "proposal_id": {
+      "type": "string"
+     },
+     "confirm": {
+      "type": "boolean",
+      "description": "true só depois do sim explícito da pessoa. Sem ele, nada é gravado."
+     }
+    },
+    "required": [
+     "proposal_id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Gravar perfil descoberto",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_set_defaults",
+   "title": "Padrões pessoais",
+   "description": "Grava na config local os padrões da pessoa num projeto: team, area_path e campos (valor null remove). Aceita me_unique_name. Só grava com confirm=true.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "defaults": {
+      "type": "object",
+      "properties": {
+       "team": {
+        "type": "string"
+       },
+       "area_path": {
+        "type": "string"
+       },
+       "fields": {
+        "type": "object",
+        "description": "{referenceName: valor ou null}"
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "me_unique_name": {
+      "type": "string"
+     },
+     "confirm": {
+      "type": "boolean",
+      "description": "true só depois do sim explícito da pessoa. Sem ele, nada é gravado."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Padrões pessoais",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_create",
+   "title": "Preparar criação",
+   "description": "Fase 1 da criação: completa padrões, confere obrigatórios, procura duplicata, lê o parent e valida com validateOnly. Não cria nada. Devolve a prévia e data.apply_args. Mostre a prévia e peça o OK antes de ado_apply.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "type": {
+      "type": "string"
+     },
+     "fields": {
+      "type": "object",
+      "description": "Campos {referenceName: valor}. Use o referenceName do campo."
+     },
+     "parent_id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "hyperlinks": {
+      "type": "array",
+      "description": "Links http ou https, como texto ou {url, comment}.",
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "object",
+         "properties": {
+          "url": {
+           "type": "string"
+          },
+          "comment": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "url"
+         ],
+         "additionalProperties": false
+        }
+       ]
+      }
+     }
+    },
+    "required": [
+     "project",
+     "type",
+     "fields"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar criação",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_update",
+   "title": "Preparar atualização",
+   "description": "Fase 1 da atualização: lê o item, resolve o estado pela intenção, concatena tags, valida com validateOnly e trava a revisão. Não altera nada. Devolve a prévia e data.apply_args.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "fields": {
+      "type": "object",
+      "description": "Campos {referenceName: valor}. Use o referenceName do campo."
+     },
+     "state_intent": {
+      "type": "string",
+      "description": "iniciar, concluir, cancelar, reabrir ou o nome exato."
+     },
+     "add_parent": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "add_hyperlinks": {
+      "type": "array",
+      "description": "Links http ou https, como texto ou {url, comment}.",
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "object",
+         "properties": {
+          "url": {
+           "type": "string"
+          },
+          "comment": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "url"
+         ],
+         "additionalProperties": false
+        }
+       ]
+      }
+     },
+     "remove_relations": {
+      "type": "array",
+      "description": "URL ou {rel, url|target_id} das relações a remover."
+     }
+    },
+    "required": [
+     "id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar atualização",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_comment",
+   "title": "Preparar comentário",
+   "description": "Fase 1 do comentário: escapa o texto (text) ou aceita HTML permitido (html), resolve menções e mostra o resultado. Não envia nada. Informe text ou html, não os dois.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "text": {
+      "type": "string"
+     },
+     "html": {
+      "type": "string"
+     },
+     "mentions": {
+      "type": "array",
+      "description": "Texto de busca ou {id, displayName} já resolvido.",
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          },
+          "displayName": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "id"
+         ],
+         "additionalProperties": false
+        }
+       ]
+      }
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar comentário",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_attach",
+   "title": "Preparar anexo",
+   "description": "Fase 1 do anexo: confere o arquivo (caminho real, tamanho, SHA-256) e o item. Não envia nada. Recusa pastas de credencial.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "file_path": {
+      "type": "string",
+      "description": "Caminho absoluto do arquivo."
+     },
+     "comment": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "file_path"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar anexo",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_apply",
+   "title": "Aplicar prévia",
+   "description": "Fase 2: envia ao Azure DevOps a prévia aprovada. Use os apply_args exatos do ado_prepare_*, só depois do OK explícito da pessoa para aquela prévia. Nunca chame sem OK.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "preview_id": {
+      "type": "string"
+     },
+     "hash": {
+      "type": "string"
+     },
+     "operation": {
+      "enum": [
+       "create",
+       "update",
+       "comment",
+       "attach"
+      ]
+     },
+     "org": {
+      "type": "string"
+     },
+     "target_id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "type": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "file_name": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "preview_id",
+     "hash",
+     "operation",
+     "org"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Aplicar prévia",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": true
+   }
+  },
+  {
+   "name": "ado_reconcile",
+   "title": "Reconciliar envio incerto",
+   "description": "Depois de timeout, erro de rede ou 5xx num ado_apply: procura o efeito no Azure DevOps. Resultado em data.outcome: applied, not_applied, ambiguous ou partial.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "preview_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "preview_id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Reconciliar envio incerto",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  }
+ ]
+}

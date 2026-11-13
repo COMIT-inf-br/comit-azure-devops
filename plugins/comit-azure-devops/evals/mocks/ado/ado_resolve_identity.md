@@ -1,0 +1,1 @@
+{"status": "ok", "reason_code": null, "data": {"count": 1, "candidates": [{"displayName": "Ana Souza", "uniqueName": "ana@example.com", "id": "2b2b2b2b-0000-4000-8000-00000000002b"}]}, "next_action": null, "diagnostic": {}}

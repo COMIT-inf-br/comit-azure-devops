@@ -7,7 +7,9 @@
 - Skills por intenção: `azure-devops`, `ado-configurar`, `ado-consultar`, `ado-criar`, `ado-atualizar`, `ado-comentar`, `ado-anexar`.
 - Escrita em duas fases: prévia completa, OK explícito e `ado_apply`. A criação valida com `validateOnly`.
 - Perfis embutidos de exemplo e descoberta automática de organização nova.
-- Documentação: setup, PAT de contingência e perfil.
+- Documentação: setup, PAT de contingência e perfil. Seção para testar o plugin localmente antes de instalar.
+- Evals de disparo por intenção (`claude plugin eval`) com mocks gerados do servidor, em `evals/` e `evals-sem-mcp/`.
+- ADO falso dos testes serve as rotas de descoberta de perfil.
 
 ## 0.0.1 (não publicado)
 

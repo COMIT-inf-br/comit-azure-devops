@@ -1,0 +1,1 @@
+{"status": "needs_decision", "reason_code": "CONFIRM_REQUIRED", "data": {"org": "OrgA", "would_save": {"project": {"id": "0c0c0c0c-0000-4000-8000-00000000000c", "name": "Projeto Ágil", "process": "0a0a0a0a-0000-4000-8000-00000000000a"}, "defaults": {"team": "Time Ágil"}}}, "next_action": "Mostre à pessoa e chame de novo com confirm=true.", "diagnostic": {}}
