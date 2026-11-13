@@ -1,0 +1,148 @@
+{
+  "_comment": "Respostas do ADO com a forma real medida em 13/11/2026 e dados sintéticos: org, processos, projetos, campos e GUIDs inventados. A chave é o caminho depois do host.",
+  "host": "https://dev.azure.com/ORG-EXEMPLO",
+  "responses": {
+    "/_apis/work/processes?$expand=projects&api-version=7.1": {
+      "count": 4,
+      "value": [
+        {"typeId": "0b0b0b0b-0000-4000-8000-00000000000b", "name": "Agile", "referenceName": "Microsoft.VSTS.Agile", "description": "", "parentProcessTypeId": "00000000-0000-0000-0000-000000000000", "isEnabled": true, "isDefault": false, "customizationType": "system"},
+        {"typeId": "0a0a0a0a-0000-4000-8000-00000000000a", "name": "PROC_EXEMPLO", "referenceName": "Inherited.Exemplo", "description": "Texto livre que não entra no perfil", "parentProcessTypeId": "0b0b0b0b-0000-4000-8000-00000000000b", "isEnabled": true, "isDefault": true, "customizationType": "inherited",
+         "projects": [
+           {"id": "0d0d0d0d-0000-4000-8000-00000000000d", "name": "Projeto Beta", "description": "descrição que não entra no perfil", "url": "https://dev.azure.com/ORG-EXEMPLO/_apis/projects/0d0d0d0d-0000-4000-8000-00000000000d"},
+           {"id": "0c0c0c0c-0000-4000-8000-00000000000c", "name": "Projeto Ágil", "description": "", "url": "https://dev.azure.com/ORG-EXEMPLO/_apis/projects/0c0c0c0c-0000-4000-8000-00000000000c"}
+         ]},
+        {"typeId": "0e0e0e0e-0000-4000-8000-00000000000e", "name": "PROC_OUTRO", "referenceName": "Inherited.Outro", "description": "", "parentProcessTypeId": "0b0b0b0b-0000-4000-8000-00000000000b", "isEnabled": true, "isDefault": false, "customizationType": "inherited",
+         "projects": [
+           {"id": "0f0f0f0f-0000-4000-8000-00000000000f", "name": "Projeto Gama", "description": "", "url": "https://dev.azure.com/ORG-EXEMPLO/_apis/projects/0f0f0f0f-0000-4000-8000-00000000000f"}
+         ]},
+        {"typeId": "0a0a0a0a-1111-4000-8000-00000000000a", "name": "PROC_VAZIO", "referenceName": "Inherited.Vazio", "description": "", "parentProcessTypeId": "0b0b0b0b-0000-4000-8000-00000000000b", "isEnabled": true, "isDefault": false, "customizationType": "inherited", "projects": []}
+      ]
+    },
+    "/_apis/wit/fields?api-version=7.1": {
+      "count": 18,
+      "value": [
+        {"referenceName": "System.Title", "name": "Title", "type": "string", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.State", "name": "State", "type": "string", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.Reason", "name": "Reason", "type": "string", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.WorkItemType", "name": "Work Item Type", "type": "string", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.AreaId", "name": "Area ID", "type": "integer", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.AreaPath", "name": "Area Path", "type": "treePath", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.IterationId", "name": "Iteration ID", "type": "integer", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.IterationPath", "name": "Iteration Path", "type": "treePath", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.Description", "name": "Description", "type": "html", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "System.AssignedTo", "name": "Assigned To", "type": "string", "isIdentity": true, "isPicklist": false},
+        {"referenceName": "Microsoft.VSTS.Common.Priority", "name": "Priority", "type": "integer", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "Microsoft.VSTS.Common.Activity", "name": "Activity", "type": "string", "isIdentity": false, "isPicklist": true},
+        {"referenceName": "Microsoft.VSTS.CMMI.Blocked", "name": "Blocked", "type": "string", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "Microsoft.VSTS.Scheduling.OriginalEstimate", "name": "Original Estimate", "type": "double", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "Custom.Equipe", "name": "Equipe", "type": "string", "isIdentity": false, "isPicklist": true},
+        {"referenceName": "Custom.Justificativa", "name": "Justificativa", "type": "string", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "Custom.ModeloTexto", "name": "Modelo de texto", "type": "plainText", "isIdentity": false, "isPicklist": false},
+        {"referenceName": "Custom.1a1a1a1a-0000-4000-8000-00000000001a", "name": "Responsável pelo impedimento", "type": "string", "isIdentity": true, "isPicklist": false},
+        {"referenceName": "Custom.2b2b2b2b-0000-4000-8000-00000000002b", "name": "Previsão de desimpedimento", "type": "dateTime", "isIdentity": false, "isPicklist": false}
+      ]
+    },
+    "/_apis/work/processes/0a0a0a0a-0000-4000-8000-00000000000a/workitemtypes?api-version=7.1": {
+      "count": 5,
+      "value": [
+        {"referenceName": "Exemplo.Task", "name": "Task", "description": "", "customization": "inherited", "color": "F2CB1D", "icon": "icon_clipboard", "isDisabled": false, "inherits": "Microsoft.VSTS.WorkItemTypes.Task"},
+        {"referenceName": "Exemplo.UserStory", "name": "User Story", "description": "", "customization": "inherited", "color": "009CCC", "icon": "icon_book", "isDisabled": false, "inherits": "Microsoft.VSTS.WorkItemTypes.UserStory"},
+        {"referenceName": "Exemplo.TaskVelha", "name": "Task Velha", "description": "", "customization": "custom", "color": "F2CB1D", "icon": "icon_clipboard", "isDisabled": true, "inherits": null},
+        {"referenceName": "Exemplo.Issue", "name": "Issue", "description": "", "customization": "inherited", "color": "B4009E", "icon": "icon_traffic_cone", "isDisabled": false, "inherits": "Microsoft.VSTS.WorkItemTypes.Issue"},
+        {"referenceName": "Exemplo.TestSuite", "name": "Test Suite", "description": "", "customization": "inherited", "color": "004B50", "icon": "icon_test_suite", "isDisabled": false, "inherits": "Microsoft.VSTS.WorkItemTypes.TestSuite"}
+      ]
+    },
+    "/0c0c0c0c-0000-4000-8000-00000000000c/_apis/wit/workitemtypecategories?api-version=7.1": {
+      "count": 3,
+      "value": [
+        {"name": "Requirement Category", "referenceName": "Microsoft.RequirementCategory", "defaultWorkItemType": {"name": "User Story"}, "workItemTypes": [{"name": "User Story"}]},
+        {"name": "Task Category", "referenceName": "Microsoft.TaskCategory", "defaultWorkItemType": {"name": "Task"}, "workItemTypes": [{"name": "Task Velha"}, {"name": "Task"}]},
+        {"name": "Hidden Types Category", "referenceName": "Microsoft.HiddenCategory", "defaultWorkItemType": {"name": "Test Suite"}, "workItemTypes": [{"name": "Task Velha"}, {"name": "Test Suite"}]}
+      ]
+    },
+    "/0c0c0c0c-0000-4000-8000-00000000000c/_apis/wit/workitemtypes/Task/fields?$expand=allowedValues&api-version=7.1": {
+      "count": 14,
+      "value": [
+        {"referenceName": "System.IterationId", "name": "Iteration ID", "alwaysRequired": true, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "System.AreaId", "name": "Area ID", "alwaysRequired": true, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "System.Title", "name": "Title", "alwaysRequired": true, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "System.State", "name": "State", "alwaysRequired": true, "defaultValue": "Aberto", "allowedValues": ["Aberto", "Concluído", "Em Andamento", "Removido"]},
+        {"referenceName": "System.Reason", "name": "Reason", "alwaysRequired": false, "defaultValue": null, "allowedValues": ["Novo", "Iniciado"]},
+        {"referenceName": "System.WorkItemType", "name": "Work Item Type", "alwaysRequired": false, "defaultValue": null, "allowedValues": ["Task", "User Story"]},
+        {"referenceName": "System.Description", "name": "Description", "alwaysRequired": false, "defaultValue": "Modelo: o que, por que", "allowedValues": []},
+        {"referenceName": "System.AssignedTo", "name": "Assigned To", "alwaysRequired": false, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "Microsoft.VSTS.Common.Activity", "name": "Activity", "alwaysRequired": true, "defaultValue": null, "allowedValues": ["1. Análise", "2. Desenvolvimento", "3. Testes"]},
+        {"referenceName": "Microsoft.VSTS.Common.Priority", "name": "Priority", "alwaysRequired": false, "defaultValue": "2", "allowedValues": ["1", "2", "3", "4"]},
+        {"referenceName": "Microsoft.VSTS.CMMI.Blocked", "name": "Blocked", "alwaysRequired": false, "defaultValue": "No", "allowedValues": ["No", "Yes"]},
+        {"referenceName": "Custom.Equipe", "name": "Equipe", "alwaysRequired": true, "defaultValue": null, "allowedValues": ["EQUIPE A", "EQUIPE B"]},
+        {"referenceName": "Custom.ModeloTexto", "name": "Modelo de texto", "alwaysRequired": false, "defaultValue": "Preencha aqui", "allowedValues": []},
+        {"referenceName": "Custom.1a1a1a1a-0000-4000-8000-00000000001a", "name": "Responsável pelo impedimento", "alwaysRequired": false, "defaultValue": {"displayName": "Pessoa Exemplo", "uniqueName": "pessoa@example.com"}, "allowedValues": ["Pessoa Exemplo <pessoa@example.com>"]},
+        {"referenceName": "Custom.2b2b2b2b-0000-4000-8000-00000000002b", "name": "Previsão de desimpedimento", "alwaysRequired": false, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "Custom.Justificativa", "name": "Justificativa", "alwaysRequired": false, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "Microsoft.VSTS.Scheduling.OriginalEstimate", "name": "Original Estimate", "alwaysRequired": false, "defaultValue": null, "allowedValues": []}
+      ]
+    },
+    "/0c0c0c0c-0000-4000-8000-00000000000c/_apis/wit/workitemtypes/Task/states?api-version=7.1": {
+      "count": 4,
+      "value": [
+        {"name": "Aberto", "color": "b2b2b2", "category": "Proposed"},
+        {"name": "Em Andamento", "color": "007acc", "category": "InProgress"},
+        {"name": "Concluído", "color": "339933", "category": "Completed"},
+        {"name": "Removido", "color": "ffffff", "category": "Removed"}
+      ]
+    },
+    "/_apis/work/processes/0a0a0a0a-0000-4000-8000-00000000000a/workItemTypes/Exemplo.Task/rules?api-version=7.1": {
+      "count": 11,
+      "value": [
+        {"name": null, "conditions": [], "actions": [{"actionType": "makeRequired", "targetField": "System.Title", "value": null}], "isDisabled": false, "customizationType": "system"},
+        {"name": null, "conditions": [], "actions": [{"actionType": "makeRequired", "targetField": "System.AreaId", "value": null}], "isDisabled": false, "customizationType": "system"},
+        {"name": null, "conditions": [], "actions": [{"actionType": "setDefaultValue", "targetField": "Microsoft.VSTS.Common.Priority", "value": "2"}], "isDisabled": false, "customizationType": "system"},
+        {"name": "Esforço na criação", "conditions": [{"conditionType": "whenWas", "field": "System.State", "value": ""}], "actions": [{"actionType": "makeRequired", "targetField": "Microsoft.VSTS.Scheduling.OriginalEstimate", "value": null}], "isDisabled": false, "customizationType": "custom"},
+        {"name": "Impedimento obrigatório", "conditions": [{"conditionType": "when", "field": "Microsoft.VSTS.CMMI.Blocked", "value": "Yes"}], "actions": [{"actionType": "makeRequired", "targetField": "Custom.Justificativa", "value": null}, {"actionType": "makeRequired", "targetField": "Custom.1a1a1a1a-0000-4000-8000-00000000001a", "value": null}, {"actionType": "makeRequired", "targetField": "Custom.2b2b2b2b-0000-4000-8000-00000000002b", "value": null}], "isDisabled": false, "customizationType": "custom"},
+        {"name": "Impedimento só leitura", "conditions": [{"conditionType": "whenNot", "field": "Microsoft.VSTS.CMMI.Blocked", "value": "Yes"}], "actions": [{"actionType": "makeReadOnly", "targetField": "Custom.Justificativa", "value": null}], "isDisabled": false, "customizationType": "custom"},
+        {"name": null, "conditions": [{"conditionType": "whenWas", "field": "System.State", "value": "New"}, {"conditionType": "when", "field": "System.State", "value": "Closed"}], "actions": [{"actionType": "makeRequired", "targetField": "System.Reason", "value": null}], "isDisabled": false, "customizationType": "system"},
+        {"name": "Limpa ao concluir", "conditions": [{"conditionType": "whenChanged", "field": "System.State", "value": null}, {"conditionType": "when", "field": "System.State", "value": "Concluído"}], "actions": [{"actionType": "copyValue", "targetField": "Microsoft.VSTS.CMMI.Blocked", "value": "No"}], "isDisabled": false, "customizationType": "custom"},
+        {"name": "Só para o grupo", "conditions": [{"conditionType": "whenCurrentUserIsMemberOfGroup", "field": null, "value": "3c3c3c3c-0000-4000-8000-00000000003c"}], "actions": [{"actionType": "makeRequired", "targetField": "Custom.Equipe", "value": null}], "isDisabled": false, "customizationType": "custom"},
+        {"name": "Regra desligada", "conditions": [], "actions": [{"actionType": "makeRequired", "targetField": "System.Description", "value": null}], "isDisabled": true, "customizationType": "custom"},
+        {"name": "Copia na criação", "conditions": [{"conditionType": "whenWas", "field": "System.State", "value": ""}], "actions": [{"actionType": "copyValue", "targetField": "Custom.Justificativa", "value": ""}, {"actionType": "setDefaultFromCurrentUser", "targetField": "System.AssignedTo", "value": null}], "isDisabled": false, "customizationType": "custom"}
+      ]
+    },
+    "/0c0c0c0c-0000-4000-8000-00000000000c/_apis/wit/workitemtypes/User%20Story/fields?$expand=allowedValues&api-version=7.1": {
+      "count": 5,
+      "value": [
+        {"referenceName": "System.IterationId", "name": "Iteration ID", "alwaysRequired": true, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "System.AreaId", "name": "Area ID", "alwaysRequired": true, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "System.Title", "name": "Title", "alwaysRequired": true, "defaultValue": null, "allowedValues": []},
+        {"referenceName": "System.State", "name": "State", "alwaysRequired": true, "defaultValue": "Aberto", "allowedValues": ["Aberto", "Concluído"]},
+        {"referenceName": "Microsoft.VSTS.Common.Priority", "name": "Priority", "alwaysRequired": false, "defaultValue": "2", "allowedValues": ["1", "2", "3", "4"]}
+      ]
+    },
+    "/0c0c0c0c-0000-4000-8000-00000000000c/_apis/wit/workitemtypes/User%20Story/states?api-version=7.1": {
+      "count": 2,
+      "value": [
+        {"name": "Aberto", "color": "b2b2b2", "category": "Proposed"},
+        {"name": "Concluído", "color": "339933", "category": "Completed"}
+      ]
+    },
+    "/_apis/work/processes/0a0a0a0a-0000-4000-8000-00000000000a/workItemTypes/Exemplo.UserStory/rules?api-version=7.1": {
+      "count": 1,
+      "value": [
+        {"name": null, "conditions": [], "actions": [{"actionType": "makeRequired", "targetField": "System.Title", "value": null}], "isDisabled": false, "customizationType": "system"}
+      ]
+    },
+    "/0c0c0c0c-0000-4000-8000-00000000000c/_apis/wit/workitemtypes/Issue/fields?$expand=allowedValues&api-version=7.1": {
+      "count": 1,
+      "value": [
+        {"referenceName": "System.Title", "name": "Title", "alwaysRequired": true, "defaultValue": null, "allowedValues": []}
+      ]
+    },
+    "/0c0c0c0c-0000-4000-8000-00000000000c/_apis/wit/workitemtypes/Issue/states?api-version=7.1": {
+      "count": 1,
+      "value": [{"name": "Aberto", "color": "b2b2b2", "category": "Proposed"}]
+    },
+    "/_apis/work/processes/0a0a0a0a-0000-4000-8000-00000000000a/workItemTypes/Exemplo.Issue/rules?api-version=7.1": {
+      "count": 0,
+      "value": []
+    }
+  }
+}
