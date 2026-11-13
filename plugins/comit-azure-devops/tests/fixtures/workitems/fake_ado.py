@@ -42,6 +42,14 @@ ANA = "2b2b2b2b-0000-4000-8000-00000000002b"
 ANA2 = "3c3c3c3c-0000-4000-8000-00000000003c"
 TEAM = "0b0b0b0b-0000-4000-8000-00000000000b"
 ME_UNIQUE = "eu@example.com"
+ITER_ROOT = "5a5a5a5a-0000-4000-8000-000000000000"
+ITERS = [  # (identifier, nome, início, fim, timeFrame, associada ao time)
+    ("5a5a5a5a-0000-4000-8000-000000000001", "Sprint 1", "2026-10-19", "2026-10-30", "past", True),
+    ("5a5a5a5a-0000-4000-8000-000000000002", "Sprint 2", "2026-11-02", "2026-11-13", "current", True),
+    ("5a5a5a5a-0000-4000-8000-000000000003", "Sprint 3", "2026-11-16", "2026-11-27", "future", True),
+    # nó que existe sem estar no time, como no ADO real (medido em 13/11/2026)
+    ("5a5a5a5a-0000-4000-8000-000000000004", "Sprint 4", "2026-11-30", "2026-12-11", "future", False),
+]
 
 STATES = {
     "Task": [("Aberto", "Proposed"), ("Em Andamento", "InProgress"), ("Concluído", "Completed"), ("Removido", "Removed")],
@@ -129,6 +137,13 @@ class FakeAdo:
         self.attachments = {}
         self.next_id = 1000
         self.next_comment = 500
+        self.recycle = {}
+        self.no_stack_rank = False
+        root = self.projects[PROJ]
+        self.nodes = [{"identifier": g, "id": 7000 + n, "name": name, "path": f"{root}\\{name}",
+                       "start": a + "T00:00:00Z", "finish": b + "T00:00:00Z", "timeFrame": tf}
+                      for n, (g, name, a, b, tf, _) in enumerate(ITERS, 1)]
+        self.team_iters = [g for g, *_, on in ITERS if on]
         self.comment_page = 2
         self.discovery = self._load_discovery()
         self.members = [
@@ -155,6 +170,8 @@ class FakeAdo:
                     return
                 if fault == "400_before":
                     status, data = 400, {"message": "Recusado pelo teste.", "typeKey": "TestException"}
+                elif fault == "403_before":
+                    status, data = 403, {"message": "TF400813: sem permissão (teste).", "typeKey": "UnauthorizedAccessException"}
                 else:
                     status, data = outer.dispatch(self.command, u.path, query, body, req)
                 if fault == "drop_after":
@@ -212,8 +229,8 @@ class FakeAdo:
 
     def writes(self):
         """Pedidos que alteram estado (fora WIQL e validateOnly)."""
-        return [r for r in self.requests if r["method"] in ("POST", "PATCH") and not r["path"].endswith("/wiql")
-                and r["query"].get("validateOnly") != "true"]
+        return [r for r in self.requests if r["method"] in ("POST", "PATCH", "PUT", "DELETE")
+                and not r["path"].endswith("/wiql") and r["query"].get("validateOnly") != "true"]
 
     def item_url(self, pid, i):
         return f"https://dev.azure.com/{self.org}/{pid}/_apis/wit/workItems/{i}"
@@ -271,12 +288,52 @@ class FakeAdo:
             return 200, {"value": self.members}
         m = re.fullmatch(r"/(" + GUID + r")/(" + GUID + r")/_apis/work/teamsettings/iterations", p)
         if m:
-            its = [{"id": "s1", "name": "Sprint 1", "path": "P\\Sprint 1", "attributes": {"timeFrame": "past"}},
-                   {"id": "s2", "name": "Sprint 2", "path": "P\\Sprint 2", "attributes": {"timeFrame": "current"}},
-                   {"id": "s3", "name": "Sprint 3", "path": "P\\Sprint 3", "attributes": {"timeFrame": "future"}}]
+            if method == "POST":
+                node = self._node_by_id(j.get("id"))
+                if node is None:
+                    return 404, {"message": "iteração"}
+                if node["identifier"] not in self.team_iters:
+                    self.team_iters.append(node["identifier"])
+                return 200, self._team_iter(node)
+            its = [self._team_iter(self._node_by_id(g)) for g in self.team_iters]
             if q.get("$timeframe") == "current":
                 its = [i for i in its if i["attributes"]["timeFrame"] == "current"]
             return 200, {"value": its}
+        m = re.fullmatch(r"/(" + GUID + r")/(" + GUID + r")/_apis/work/teamsettings/iterations/(" + GUID + r")/workitems", p)
+        if m:
+            node = self._node_by_id(m.group(3))
+            if node is None or node["identifier"] not in self.team_iters:
+                return 404, {"message": "iteração do time"}
+            ids = [i for i, it in self.items.items() if it["fields"].get("System.IterationPath") == node["path"]]
+            rels = []
+            for i in ids:
+                par = self.items[i]["fields"].get("System.Parent")
+                if par in ids:
+                    rels.append({"rel": "System.LinkTypes.Hierarchy-Forward", "source": {"id": par}, "target": {"id": i}})
+                else:
+                    rels.append({"rel": None, "source": None, "target": {"id": i}})
+            return 200, {"workItemRelations": rels}
+        m = re.fullmatch(r"/(" + GUID + r")/(" + GUID + r")/_apis/work/teamsettings", p)
+        if m and method == "GET":
+            cur = next(n for n in self.nodes if n["timeFrame"] == "current")
+            return 200, {"backlogIteration": {"id": ITER_ROOT, "name": self.projects[PROJ], "path": ""},
+                         "defaultIteration": {"id": cur["identifier"], "name": cur["name"], "path": "\\" + cur["name"]},
+                         "bugsBehavior": "asTasks"}
+        m = re.fullmatch(r"/(" + GUID + r")/(" + GUID + r")/_apis/work/teamsettings/teamfieldvalues", p)
+        if m and method == "GET":
+            root = self.projects[PROJ]
+            return 200, {"field": {"referenceName": "System.AreaPath"}, "defaultValue": root,
+                         "values": [{"value": root, "includeChildren": False},
+                                    {"value": root + "\\Dados", "includeChildren": True}]}
+        m = re.fullmatch(r"/(" + GUID + r")/_apis/wit/workitemtypecategories", p)
+        if m:
+            return 200, {"value": [{"referenceName": "Microsoft.RequirementCategory", "workItemTypes": [{"name": "User Story"}]},
+                                   {"referenceName": "Microsoft.BugCategory", "workItemTypes": [{"name": "Bug"}]},
+                                   {"referenceName": "Microsoft.TaskCategory", "workItemTypes": [{"name": "Task"}]},
+                                   {"referenceName": "Microsoft.EpicCategory", "workItemTypes": [{"name": "Epic"}]}]}
+        m = re.fullmatch(r"/(" + GUID + r")/_apis/wit/classificationnodes/Iterations(/.*)?", p)
+        if m:
+            return self._nodes_route(method, (m.group(2) or "").strip("/"), j)
         if p == "/_apis/identities":
             v = q.get("filterValue", "").casefold()
             return 200, {"value": [{"id": m["identity"]["id"], "providerDisplayName": m["identity"]["displayName"],
@@ -310,6 +367,14 @@ class FakeAdo:
         m = re.fullmatch(r"/(" + GUID + r")/_apis/wit/workitems/(\d+)", p)
         if m and method == "PATCH":
             return self._patch(int(m.group(2)), j, q.get("validateOnly") == "true")
+        if m and method == "DELETE":
+            i = int(m.group(2))
+            if q.get("destroy") not in (None, "false"):
+                return 400, {"message": "o teste recusa destroy"}
+            if i not in self.items:
+                return 404, {"message": f"TF401232: Work item {i} does not exist."}
+            self.recycle[i] = self.items.pop(i)
+            return 200, {"id": i, "code": 200}
         m = re.fullmatch(r"/(" + GUID + r")/_apis/wit/workItems/(\d+)/comments(?:/(\d+))?", p)
         if m:
             if q.get("api-version") != "7.1-preview.4":
@@ -325,6 +390,42 @@ class FakeAdo:
             self.attachments[g] = {"name": q.get("fileName"), "data": body, "pid": m.group(1)}
             return 201, {"id": g, "url": f"https://dev.azure.com/{self.org}/_apis/wit/attachments/{g}?fileName={q.get('fileName')}"}
         return 404, {"message": f"rota desconhecida: {method} {p}"}
+
+    def _node_by_id(self, g):
+        return next((n for n in self.nodes if n["identifier"] == str(g or "").lower()), None)
+
+    def _team_iter(self, n):
+        return {"id": n["identifier"], "name": n["name"], "path": n["path"],
+                "attributes": {"startDate": n["start"], "finishDate": n["finish"], "timeFrame": n["timeFrame"]}}
+
+    def _node_view(self, n):
+        root = self.projects[PROJ]
+        rel = n["path"][len(root):]
+        return {"id": n["id"], "identifier": n["identifier"], "name": n["name"], "structureType": "iteration",
+                "path": "\\" + root + "\\Iteration" + rel, "hasChildren": False,
+                "attributes": {"startDate": n["start"], "finishDate": n["finish"]}}
+
+    def _nodes_route(self, method, rel, j):
+        """Só um nível abaixo da raiz, como no projeto real medido."""
+        root = self.projects[PROJ]
+        if method == "GET":
+            if not rel:
+                return 200, {"id": 7000, "identifier": ITER_ROOT, "name": root, "path": "\\" + root + "\\Iteration",
+                             "hasChildren": bool(self.nodes), "children": [self._node_view(n) for n in self.nodes]}
+            n = next((n for n in self.nodes if n["path"].casefold() == (root + "\\" + rel).casefold()), None)
+            return (200, self._node_view(n)) if n else (404, {"message": "VS402485: nó não encontrado"})
+        if method == "POST" and not rel:
+            name = (j or {}).get("name")
+            if any(n["name"].casefold() == str(name).casefold() for n in self.nodes):
+                return 409, {"message": "VS402371: Classification node name already in use."}
+            a = (j or {}).get("attributes") or {}
+            with self.lock:
+                g = str(uuid.UUID(int=0x5a5a5a5a000040008000000000000000 + 100 + len(self.nodes)))
+            n = {"identifier": g, "id": 7100 + len(self.nodes), "name": name, "path": f"{root}\\{name}",
+                 "start": a.get("startDate"), "finish": a.get("finishDate"), "timeFrame": "future"}
+            self.nodes.append(n)
+            return 201, self._node_view(n)
+        return 400, {"message": "nó"}
 
     def _view(self, i, fields=None, relations=False):
         it = self.items[i]
@@ -436,6 +537,8 @@ class FakeAdo:
         return 200, out
 
     def _wiql(self, pid, query, top):
+        if self.no_stack_rank and "StackRank" in query:
+            return 400, {"message": "TF51005: campo StackRank não existe (teste)."}
         m = re.search(r"WHERE (.*?)(?: ORDER BY .*)?$", query)
         conds = [c.strip() for c in m.group(1).split(" AND ")] if m else []
         out = []
@@ -445,8 +548,10 @@ class FakeAdo:
         return 200, {"workItems": out[:top]}
 
     def _cond(self, c, it, pid):
+        if c.startswith("(") and c.endswith(")"):
+            return any(self._cond(x.strip(), it, pid) for x in c[1:-1].split(" OR "))
         f = it["fields"]
-        m = re.fullmatch(r"\[([^\]]+)\] (=|>=|>|IN) (.+)", c)
+        m = re.fullmatch(r"\[([^\]]+)\] (=|>=|>|<>|IN|UNDER) (.+)", c)
         if not m:
             raise ValueError("WIQL não suportada no fake: " + c)
         ref, op, rhs = m.groups()
@@ -461,7 +566,12 @@ class FakeAdo:
             vals = [x.replace("''", "'") for x in re.findall(r"'((?:[^']|'')*)'", rhs)]
             return f.get(ref) in vals
         if rhs.startswith("'"):
-            return str(f.get(ref)) == rhs[1:-1].replace("''", "'")
+            v = rhs[1:-1].replace("''", "'")
+            if op == "UNDER":
+                return str(f.get(ref)) == v or str(f.get(ref)).startswith(v + "\\")
+            if op == "<>":
+                return str(f.get(ref)) != v
+            return str(f.get(ref)) == v
         if op == ">":
             return int(f.get(ref) or 0) > int(rhs)
         return f.get(ref) == int(rhs)
