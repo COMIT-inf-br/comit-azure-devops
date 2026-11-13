@@ -15,10 +15,12 @@ Plugin do Claude Code e do Claude Cowork para operar work items do Azure DevOps 
 |---|---|
 | `azure-devops` | Roteia o pedido para a skill certa |
 | `ado-configurar` | Conduz login, organização nova, perfil e PAT de contingência |
-| `ado-consultar` | Lê, lista e filtra work items |
+| `ado-consultar` | Lê, lista e filtra work items; resume os comentários de um item |
+| `ado-sprint` | Backlog do time, montagem de sprint, carga por pessoa, nova sprint, virada de sprint e exclusão |
+| `ado-daily` | Transforma a transcrição ou a ata de uma reunião em um comentário por item |
 | `ado-criar` | Cria task, user story, bug, feature e épico |
 | `ado-atualizar` | Muda estado, campos, pai e links |
-| `ado-comentar` | Comenta e menciona pessoas |
+| `ado-comentar` | Comenta e menciona pessoas, também em vários itens de uma vez |
 | `ado-anexar` | Anexa arquivos e evidências |
 
 As skills disparam pela intenção do pedido. Num projeto que tem skills próprias de Azure DevOps, as skills do plugin cedem a vez.
@@ -120,9 +122,25 @@ As ferramentas de leitura podem ir para `permissions.allow` do seu `settings.jso
 - `ado_resolve_identity`
 - `ado_type_schema`
 - `ado_discover_org`
+- `ado_backlog`
+- `ado_sprint_items`
 
 Não ponha `ado_apply` em `allow`. Não use "permitir sempre" nem o modo `bypassPermissions` para essa ferramenta.
 
 O prompt de permissão de `ado_apply` é a trava dura contra escrita indevida. O `preview_id` e o `hash` da prévia não provam o seu OK: o modelo recebe os dois no `ado_prepare_*` e os repassa no `ado_apply`. Sem o prompt de permissão, só o OK pedido no chat segura a escrita.
 
-As ferramentas `ado_prepare_*` não gravam nada no Azure DevOps. `ado_prepare_create` e `ado_prepare_update` enviam a validação ao servidor com `validateOnly`, que não grava. Elas podem ficar no prompt padrão.
+As ferramentas `ado_prepare_*` não gravam nada no Azure DevOps. `ado_prepare_create`, `ado_prepare_update`, `ado_prepare_move_to_sprint` e `ado_prepare_sprint_rollover` enviam a validação ao servidor com `validateOnly`, que não grava. Elas podem ficar no prompt padrão.
+
+## Operações em lote
+
+Mover para a sprint, criar sprint, virar a sprint, excluir com filhos e o lote de comentários têm uma prévia só, com um hash. O `ado_apply` envia um pedido por item, na ordem da prévia.
+
+- Se parte do lote ficar pendente (sem login, limite de taxa, rede), chame `ado_apply` de novo. Ele envia só os passos pendentes e não repete o que já foi gravado.
+- Item que mudou depois da prévia é recusado pelo `test /rev` e pede uma prévia nova.
+- Sem permissão (HTTP 403), o passo volta `FORBIDDEN` com a permissão que falta.
+- Criar iteração e excluir não têm `validateOnly` no Azure DevOps. A prévia e o OK são a única trava.
+- A exclusão vai para a lixeira do projeto e pode ser restaurada lá. O plugin nunca exclui em definitivo.
+
+## Planejado
+
+- Indicar pessoas a procurar sobre um item, com base nos comentários, nas entregas e nas datas prometidas.

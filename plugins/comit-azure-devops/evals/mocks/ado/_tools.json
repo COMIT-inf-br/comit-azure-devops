@@ -217,6 +217,82 @@
    }
   },
   {
+   "name": "ado_backlog",
+   "title": "Backlog do time",
+   "description": "Itens do time ainda sem sprint: iteração de backlog do time, áreas do time e estados abertos por padrão. Sem types, usa os tipos de requisito do processo. Ordena pela prioridade do backlog quando o campo existe.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     },
+     "types": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "state_category": {
+      "type": "string",
+      "description": "Proposed, InProgress, Resolved, Completed, Removed ou open (padrão)."
+     },
+     "top": {
+      "type": "integer",
+      "description": "Máximo de itens (1 a 200, padrão 100)."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Backlog do time",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
+   "name": "ado_sprint_items",
+   "title": "Itens da sprint",
+   "description": "Itens de uma sprint do time (padrão: a atual), com pai, estado, responsável e esforço (RemainingWork, OriginalEstimate, CompletedWork). Traz totais por pessoa.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     },
+     "iteration": {
+      "type": "string",
+      "description": "Sprint: nome, caminho (Projeto\\Sprint 3) ou GUID."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Itens da sprint",
+    "readOnlyHint": true,
+    "openWorldHint": true
+   }
+  },
+  {
    "name": "ado_get",
    "title": "Ler work item",
    "description": "Lê um work item: campos, relações, parent, filhos, URL web, estado e categoria.",
@@ -809,9 +885,265 @@
    }
   },
   {
+   "name": "ado_prepare_move_to_sprint",
+   "title": "Preparar mudança de sprint",
+   "description": "Fase 1: move 1 ou mais itens para uma sprint do time (ou iteration=backlog). include_children (padrão true) leva as filhas não concluídas. Lê cada item, trava a revisão e valida com validateOnly. Não altera nada.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     },
+     "ids": {
+      "type": "array",
+      "items": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "Id numérico do work item."
+      }
+     },
+     "iteration": {
+      "type": "string",
+      "description": "Sprint: nome, caminho (Projeto\\Sprint 3) ou GUID."
+     },
+     "include_children": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "ids",
+     "iteration"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar mudança de sprint",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_create_sprint",
+   "title": "Preparar nova sprint",
+   "description": "Fase 1: cria a iteração e a associa ao time. Sem nome e datas, sugere a próxima pelo padrão do time (número + 1, datas logo depois da última). Se o nó já existir fora do time, só associa. Não cria nada.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     },
+     "name": {
+      "type": "string"
+     },
+     "start_date": {
+      "type": "string",
+      "description": "AAAA-MM-DD"
+     },
+     "finish_date": {
+      "type": "string",
+      "description": "AAAA-MM-DD"
+     },
+     "assign_to_team": {
+      "type": "boolean",
+      "description": "Padrão true."
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar nova sprint",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_sprint_rollover",
+   "title": "Preparar virada de sprint",
+   "description": "Fase 1: lista o que não está concluído na sprint de origem (padrão: a atual) e prepara a mudança para a próxima. Se a próxima não existir e create_if_missing=true (padrão), inclui a criação dela. Não altera nada.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     },
+     "from_iteration": {
+      "type": "string",
+      "description": "Sprint: nome, caminho (Projeto\\Sprint 3) ou GUID."
+     },
+     "to_iteration": {
+      "type": "string",
+      "description": "Sprint: nome, caminho (Projeto\\Sprint 3) ou GUID."
+     },
+     "create_if_missing": {
+      "type": "boolean"
+     }
+    },
+    "required": [],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar virada de sprint",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_delete",
+   "title": "Preparar exclusão",
+   "description": "Fase 1: exclui o work item para a lixeira do projeto (recuperável; nunca em definitivo). Com filhos, exige include_children=true para excluir a árvore. Não exclui nada.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "id": {
+      "type": [
+       "integer",
+       "string"
+      ],
+      "description": "Id numérico do work item."
+     },
+     "include_children": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "id"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar exclusão",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
+   "name": "ado_prepare_comments_batch",
+   "title": "Preparar lote de comentários",
+   "description": "Fase 1: vários comentários (um por item) numa prévia só, com um hash. Cada item leva text ou html e mentions. Resolve as menções no team. Não envia nada.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "org": {
+      "type": "string",
+      "description": "Nome da organização. Omita para usar a organização padrão."
+     },
+     "project": {
+      "type": "string",
+      "description": "Nome ou GUID do projeto."
+     },
+     "team": {
+      "type": "string",
+      "description": "Nome ou GUID do team. Omita para usar o padrão da pessoa."
+     },
+     "items": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": [
+          "integer",
+          "string"
+         ],
+         "description": "Id numérico do work item."
+        },
+        "text": {
+         "type": "string"
+        },
+        "html": {
+         "type": "string"
+        },
+        "mentions": {
+         "type": "array",
+         "items": {
+          "anyOf": [
+           {
+            "type": "string"
+           },
+           {
+            "type": "object",
+            "properties": {
+             "id": {
+              "type": "string"
+             },
+             "displayName": {
+              "type": "string"
+             }
+            },
+            "required": [
+             "id"
+            ],
+            "additionalProperties": false
+           }
+          ]
+         }
+        }
+       },
+       "required": [
+        "id"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "source_label": {
+      "type": "string",
+      "description": "Origem do lote, por exemplo: Daily 13/11."
+     }
+    },
+    "required": [
+     "items"
+    ],
+    "additionalProperties": false
+   },
+   "annotations": {
+    "title": "Preparar lote de comentários",
+    "readOnlyHint": false,
+    "openWorldHint": true,
+    "destructiveHint": false
+   }
+  },
+  {
    "name": "ado_apply",
    "title": "Aplicar prévia",
-   "description": "Fase 2: envia ao Azure DevOps a prévia aprovada. Use os apply_args exatos do ado_prepare_*, só depois do OK explícito da pessoa para aquela prévia. Nunca chame sem OK.",
+   "description": "Fase 2: envia ao Azure DevOps a prévia aprovada. Use os apply_args exatos do ado_prepare_*, só depois do OK explícito da pessoa para aquela prévia. Nunca chame sem OK. Em lote parcial, repetir envia só os pendentes.",
    "inputSchema": {
     "type": "object",
     "properties": {
@@ -826,7 +1158,12 @@
        "create",
        "update",
        "comment",
-       "attach"
+       "attach",
+       "move",
+       "create_sprint",
+       "delete",
+       "rollover",
+       "comments_batch"
       ]
      },
      "org": {
@@ -847,6 +1184,12 @@
      },
      "file_name": {
       "type": "string"
+     },
+     "iteration": {
+      "type": "string"
+     },
+     "count": {
+      "type": "integer"
      }
     },
     "required": [

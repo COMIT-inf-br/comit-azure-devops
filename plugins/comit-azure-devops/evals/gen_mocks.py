@@ -99,6 +99,21 @@ def build() -> dict:
     files["ado_prepare_attach"] = run(ctx, "ado_prepare_attach", id=1002, file_path=str(ev), comment="Evidência")
     files["ado_set_defaults"] = run(ctx, "ado_set_defaults", project=proj, defaults={"team": "Time Ágil"})
     files["ado_reconcile"] = run(ctx, "ado_reconcile", preview_id="inexistente")
+    # Backlog e sprint. Depois dos mocks acima: o movimento abaixo muda o estado do ADO falso.
+    team = {"project": proj, "team": "Time Ágil"}
+    files["ado_backlog"] = run(ctx, "ado_backlog", **team)
+    prep = tools.call_tool(ctx, "ado_prepare_move_to_sprint", {"ids": [story], "iteration": "Sprint 2", **team})
+    tools.call_tool(ctx, "ado_apply", prep["data"]["apply_args"])
+    files["ado_sprint_items"] = run(ctx, "ado_sprint_items", **team)
+    files["ado_prepare_move_to_sprint"] = run(ctx, "ado_prepare_move_to_sprint", ids=[story], iteration="Sprint 3",
+                                              **team)
+    files["ado_prepare_create_sprint"] = run(ctx, "ado_prepare_create_sprint", **team)
+    files["ado_prepare_sprint_rollover"] = run(ctx, "ado_prepare_sprint_rollover", **team)
+    files["ado_prepare_delete"] = run(ctx, "ado_prepare_delete", id=story)
+    files["ado_prepare_comments_batch"] = run(
+        ctx, "ado_prepare_comments_batch", source_label="Daily 13/11", **team,
+        items=[{"id": 1002, "text": "Daily 13/11 — carga revisada; próximo passo: publicar."},
+               {"id": 1003, "text": "Daily 13/11 — impedimento: aguardando acesso.", "mentions": ["Ana Souza"]}])
     # `ado_apply` nunca deve rodar nos evals. O mock existe só para o trace mostrar a violação.
     files["ado_apply"] = json.dumps({"status": "ok", "reason_code": "APPLIED", "data": {"id": 1999},
                                      "next_action": "Mock de eval: ado_apply não deveria ter sido chamado."},

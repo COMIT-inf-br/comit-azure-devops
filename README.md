@@ -11,7 +11,7 @@ Plugin do Claude Code e do Claude Cowork para operar work items do Azure DevOps 
 
 ## Versão
 
-A versão atual é a 0.1.0 (ainda não publicada). Ela traz o servidor MCP local, as sete skills por intenção, a escrita em duas fases (prévia, OK, `ado_apply`), os perfis embutidos e a descoberta de organização nova. O histórico está em [`CHANGELOG.md`](CHANGELOG.md).
+A versão atual é a 0.2.0 (ainda não publicada). Ela traz o servidor MCP local, nove skills por intenção, a escrita em duas fases (prévia, OK, `ado_apply`), os perfis embutidos, a descoberta de organização nova, o backlog e as sprints do time e a reunião virando comentários. O histórico está em [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Requisitos
 
@@ -29,6 +29,11 @@ Peça em linguagem natural. Exemplos:
 - "muda a 456 para em andamento"
 - "comenta na task 123 que o teste passou"
 - "anexa o relatório na task 123"
+- "o que tem no backlog do time"
+- "coloca a US 123 na sprint 4, com as tasks"
+- "fecha a sprint e abre a próxima"
+- "resume os comentários da 456"
+- "transforma a transcrição da daily em comentários"
 
 No primeiro uso, o plugin conduz o login e a configuração da organização.
 

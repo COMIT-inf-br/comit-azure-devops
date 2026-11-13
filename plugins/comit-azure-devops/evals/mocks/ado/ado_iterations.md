@@ -1,1 +1,1 @@
-{"status": "ok", "reason_code": null, "data": {"count": 1, "iterations": [{"id": "s2", "name": "Sprint 2", "path": "P\\Sprint 2", "start": null, "finish": null, "timeframe": "current"}]}, "next_action": null, "diagnostic": {}}
+{"status": "ok", "reason_code": null, "data": {"count": 1, "iterations": [{"id": "5a5a5a5a-0000-4000-8000-000000000002", "name": "Sprint 2", "path": "Projeto Ágil\\Sprint 2", "start": "2026-11-13T00:00:00Z", "finish": "2026-11-13T00:00:00Z", "timeframe": "current"}]}, "next_action": null, "diagnostic": {}}

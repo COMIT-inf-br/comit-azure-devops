@@ -21,7 +21,7 @@ from .vault import Secret, redact
 
 HOST = "dev.azure.com"
 VSSPS_HOST = "vssps.dev.azure.com"
-USER_AGENT = "comit-azure-devops/0.1"
+USER_AGENT = "comit-azure-devops/0.2"
 JSON_PATCH = "application/json-patch+json"
 TIMEOUT = 30
 GUID_RE = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
