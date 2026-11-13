@@ -57,5 +57,5 @@ O teste `tests/unit/test_fake_ado_mocks_evals.py` falha se os mocks ficarem desa
 ## Limites
 
 - O eval não simula turnos da pessoa. Por isso nenhum caso cobre o `ado_apply` depois do OK: os casos só provam que ele não roda sem OK.
-- O eval carrega só o plugin sob teste. A skill do projeto de `skill-de-projeto-presente` vem de `append_system_prompt` e não existe de fato. O caso confere que o modelo tenta a skill do projeto primeiro.
+- O eval carrega só o plugin sob teste. A skill do projeto de `skill-de-projeto-presente` vem de `append_system_prompt` (só nome e descrição) e não existe de fato. O caso confere que o modelo tenta a skill do projeto primeiro.
 - Os mocks são estáticos. `ado_setup_org` e `ado_profile_save` sempre pedem confirmação, e os graders recusam `confirm=true`.

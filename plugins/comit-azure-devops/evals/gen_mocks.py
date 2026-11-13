@@ -24,9 +24,29 @@ HASH = "00000000000000000000000000000000000000000000000000000000000000bb"
 PROPOSAL = "0000000000000000000000000000cccc"
 
 
+def fix_machine_fields(text: str) -> str:
+    """Valores que mudam com o sistema (macOS, Linux, Windows), trocados pelo JSON já lido."""
+    try:
+        d = json.loads(text)
+    except ValueError:
+        return text
+    data = d.get("data") if isinstance(d, dict) else None
+    if isinstance(data, dict):
+        if isinstance(data.get("runtime"), dict):
+            data["runtime"]["system"] = "mac"
+        if isinstance(data.get("az"), dict) and "path" in data["az"]:
+            data["az"]["path"] = "/caminho/sintetico"
+        if isinstance(data.get("file"), dict):
+            data["file"].update(path="/caminho/sintetico", size=11)
+        if "requested_path" in data:
+            data["requested_path"] = "/caminho/sintetico"
+    return json.dumps(d, ensure_ascii=False)
+
+
 def clean(text: str, name: str) -> str:
-    """Troca o que varia entre execuções: caminhos, versão do Python, validade e identificadores."""
-    text = re.sub(r"/(?:Users|private|var|tmp|home)/[^\"\s]*", "/caminho/sintetico", text)
+    """Troca o que varia entre execuções: sistema, caminhos, versão do Python, validade e identificadores."""
+    text = fix_machine_fields(text)
+    text = re.sub(r"(?:/(?:Users|private|var|tmp|home)/|[A-Za-z]:\\\\)[^\"\s]*", "/caminho/sintetico", text)
     text = re.sub(r"\b[0-9a-f]{64}\b", HASH, text)
     text = re.sub(r"\b[0-9a-f]{32}\b", PROPOSAL if name == "ado_discover_org" else PREVIEW, text)
     text = re.sub(r'"expires_at": [0-9.]+', '"expires_at": 1794000000.0', text)
@@ -75,7 +95,7 @@ def build() -> dict:
     files["ado_prepare_comment"] = run(ctx, "ado_prepare_comment", id=1002, text="Teste passou.",
                                        mentions=["Ana Souza"])
     ev = Path(tempfile.mkdtemp(prefix="ado-gen-")) / "relatorio.txt"
-    ev.write_text("evidência\n", encoding="utf-8")
+    ev.write_bytes("evidência\n".encode("utf-8"))  # bytes: sem troca de \n por \r\n no Windows
     files["ado_prepare_attach"] = run(ctx, "ado_prepare_attach", id=1002, file_path=str(ev), comment="Evidência")
     files["ado_set_defaults"] = run(ctx, "ado_set_defaults", project=proj, defaults={"team": "Time Ágil"})
     files["ado_reconcile"] = run(ctx, "ado_reconcile", preview_id="inexistente")
