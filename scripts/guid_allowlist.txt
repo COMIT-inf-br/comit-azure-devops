@@ -1,2 +1,15 @@
 # GUIDs permitidos fora de plugins/*/profiles/ (um por linha, minúsculos).
 # Comentário começa com #. O S2 acrescenta aqui o resource id do Azure DevOps.
+499b84ac-1321-427f-aa17-267ca6975798  # resource id do Azure DevOps no Entra (azcli.ADO_RESOURCE)
+# S3: GUIDs sintéticos das fixtures e testes de descoberta e perfil (não existem em org real).
+00000000-0000-0000-0000-000000000000  # GUID nulo: parentProcessTypeId dos processos de sistema
+0a0a0a0a-0000-4000-8000-00000000000a
+0a0a0a0a-1111-4000-8000-00000000000a
+0b0b0b0b-0000-4000-8000-00000000000b
+0c0c0c0c-0000-4000-8000-00000000000c
+0d0d0d0d-0000-4000-8000-00000000000d
+0e0e0e0e-0000-4000-8000-00000000000e
+0f0f0f0f-0000-4000-8000-00000000000f
+1a1a1a1a-0000-4000-8000-00000000001a
+2b2b2b2b-0000-4000-8000-00000000002b
+3c3c3c3c-0000-4000-8000-00000000003c
