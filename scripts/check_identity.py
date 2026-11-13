@@ -3,6 +3,8 @@
 
 Escaneia só os arquivos versionados (`git ls-files`). Os padrões são montados
 por partes para este arquivo não casar com eles. Saída 0 = limpo; 1 = achados.
+Com `--history`, escaneia também as mensagens e os diffs de `git log --all`, com as
+mesmas isenções por caminho. Os metadados de autor e committer não entram.
 """
 import re
 import subprocess
@@ -22,6 +24,9 @@ GLOBAL = [
     ("termo-interno", re.compile("|".join(
         ["data" + "-transformation", "padroes" + "_ado", "Cerv" + "ello", "mdb" + "cit"]), re.I)),
     # PAT formato antigo: 52 caracteres base32 (a-z2-7); formato atual: 84 caracteres com AZDO.
+    # Caminho de home com nome de usuário. Placeholders como `<nome>`, `$USER`, `%USERNAME%` e `~` passam.
+    ("caminho-home", re.compile(r"(?:/Users/|/home/|[A-Za-z]:\\{1,2}Users\\{1,2}|[A-Za-z]:/Users/)"
+                                r"(?![<{$%~*.])[^/\\\s<>{}$%*\"')]+(?:/|\\)")),
     ("pat-84", re.compile(r"(?<![A-Za-z0-9])(?=[A-Za-z0-9]{84}(?![A-Za-z0-9]))[A-Za-z0-9]{75,76}AZDO[A-Za-z0-9]{4,5}(?![A-Za-z0-9])")),
     ("pat-52", re.compile(r"(?<![A-Za-z0-9])[a-z2-7]{52}(?![A-Za-z0-9])")),
 ]
@@ -41,33 +46,79 @@ def load_allow():
     return out
 
 
-def main():
-    files = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True,
-                           check=True).stdout.splitlines()
-    allow = load_allow()
+def scan_line(rel, line, allow):
+    """Nomes dos padrões que a linha viola, com as isenções por caminho."""
+    names = []
+    checks = list(GLOBAL)
+    if SQUAD_PATHS.search(rel):
+        checks.append(SQUAD)
+    for name, rx in checks:
+        if rx.search(line):
+            names.append(name)
+    if rel != ALLOWLIST and not GUID_FREE.search(rel):
+        for g in GUID.findall(line):
+            if g.lower() not in allow:
+                names.append("guid-fora-da-lista")
+    return names
+
+
+def git(*args):
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=True,
+                          encoding="utf-8", errors="replace").stdout
+
+
+def scan_tree(allow):
+    files = git("ls-files").splitlines()
     hits = []
     for rel in files:
         if rel == SELF:
             continue
-        path = ROOT / rel
         try:
-            text = path.read_text(encoding="utf-8")
+            text = (ROOT / rel).read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
-        checks = list(GLOBAL)
-        if SQUAD_PATHS.search(rel):
-            checks.append(SQUAD)
         for n, line in enumerate(text.splitlines(), 1):
-            for name, rx in checks:
-                if rx.search(line):
-                    hits.append(f"{rel}:{n}: {name}")
-            if rel != ALLOWLIST and not GUID_FREE.search(rel):
-                for g in GUID.findall(line):
-                    if g.lower() not in allow:
-                        hits.append(f"{rel}:{n}: guid-fora-da-lista")
+            hits += [f"{rel}:{n}: {name}" for name in scan_line(rel, line, allow)]
+    return hits, len(files)
+
+
+MARK = "@@COMMIT@@"
+
+
+def scan_history(allow):
+    """Mensagens e linhas alteradas de todos os commits. Sem os metadados de autor."""
+    hits = []
+    msgs = git("log", "--all", f"--format={MARK}%H%n%B")
+    sha = "?"
+    for line in msgs.splitlines():
+        if line.startswith(MARK):
+            sha = line[len(MARK):][:10]
+            continue
+        hits += [f"{sha} (mensagem): {name}" for name in scan_line("", line, allow)]
+    log = git("log", "--all", "-p", "-U0", "--no-color", "--no-renames", f"--format={MARK}%H")
+    sha, rel, count = "?", "", 0
+    for line in log.splitlines():
+        if line.startswith(MARK):
+            sha, rel = line[len(MARK):][:10], ""
+            count += 1
+        elif line.startswith("diff --git "):
+            rel = line.rsplit(" b/", 1)[-1]
+        elif rel and rel != SELF and line[:1] in "+-" and not line.startswith(("+++", "---")):
+            hits += [f"{sha} {rel}: {name}" for name in scan_line(rel, line[1:], allow)]
+    return sorted(set(hits)), count
+
+
+def main():
+    allow = load_allow()
+    hits, nfiles = scan_tree(allow)
+    summary = f"{len(hits)} achados, {nfiles} arquivos"
+    if "--history" in sys.argv[1:]:
+        hh, ncommits = scan_history(allow)
+        hits += hh
+        summary = f"{len(hits)} achados, {nfiles} arquivos, {ncommits} commits"
     for h in hits:
         print(h)
-    print(f"V7: {'FALHOU' if hits else 'ok'} ({len(hits)} achados, {len(files)} arquivos)")
+    print(f"V7: {'FALHOU' if hits else 'ok'} ({summary})")
     return 1 if hits else 0
 
 
